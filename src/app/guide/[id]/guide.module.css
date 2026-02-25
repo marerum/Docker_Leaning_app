@@ -1,0 +1,461 @@
+.guidePage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+/* Chapter Header */
+.chapterHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.chapterIcon {
+    font-size: 2.5rem;
+}
+
+.chapterMeta {
+    flex: 1;
+}
+
+.chapterLevel {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-1);
+}
+
+.chapterTitle {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+}
+
+.chapterNav {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.navBtn {
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.navBtn:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-accent-primary);
+}
+
+/* Section Cards */
+.section {
+    background: var(--gradient-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.sectionIcon {
+    font-size: var(--text-xl);
+}
+
+.sectionTitle {
+    font-size: var(--text-lg);
+    font-weight: 600;
+}
+
+/* Intro Section */
+.introGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+}
+
+.introCard {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.introCardBefore {
+    border-left: 3px solid var(--color-accent-danger);
+}
+
+.introCardAfter {
+    border-left: 3px solid var(--color-accent-success);
+}
+
+.introCardLabel {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-2);
+}
+
+.introCardBefore .introCardLabel {
+    color: var(--color-accent-danger);
+}
+
+.introCardAfter .introCardLabel {
+    color: var(--color-accent-success);
+}
+
+.introCardText {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+/* Goals */
+.goalsList {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.goalItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.goalCheck {
+    color: var(--color-accent-primary);
+}
+
+/* Concept Content */
+.conceptContent {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+}
+
+.conceptContent h2 {
+    font-size: var(--text-lg);
+    color: var(--color-text-primary);
+    margin: var(--space-4) 0 var(--space-2);
+}
+
+.conceptContent h3 {
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+    margin: var(--space-3) 0 var(--space-2);
+}
+
+.conceptContent code {
+    font-family: var(--font-mono);
+    background: var(--color-bg-terminal);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    color: var(--color-accent-primary);
+}
+
+.conceptContent pre {
+    background: var(--color-bg-terminal);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin: var(--space-3) 0;
+    border: 1px solid var(--color-border);
+}
+
+.conceptContent pre code {
+    background: none;
+    padding: 0;
+    color: var(--color-text-secondary);
+}
+
+.conceptContent table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-3) 0;
+}
+
+.conceptContent th,
+.conceptContent td {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    text-align: left;
+}
+
+.conceptContent th {
+    background: var(--color-bg-secondary);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* Simulation Terminal */
+.terminal {
+    background: var(--color-bg-terminal);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.terminalHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(30, 41, 59, 0.8);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.terminalDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dotRed {
+    background: #f87171;
+}
+
+.dotYellow {
+    background: #fbbf24;
+}
+
+.dotGreen {
+    background: #34d399;
+}
+
+.terminalTitle {
+    flex: 1;
+    text-align: center;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+}
+
+.terminalBody {
+    padding: var(--space-4);
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+}
+
+.terminalOutput {
+    white-space: pre-wrap;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+.terminalPrompt {
+    color: var(--color-accent-success);
+}
+
+.terminalCommand {
+    color: var(--color-text-primary);
+}
+
+.terminalResult {
+    color: var(--color-text-muted);
+}
+
+.terminalInputLine {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.terminalInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    outline: none;
+    caret-color: var(--color-accent-primary);
+}
+
+.simPrompt {
+    padding: var(--space-3) var(--space-4);
+    background: rgba(56, 189, 248, 0.05);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hintBtn {
+    padding: var(--space-1) var(--space-3);
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--color-accent-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.hintBtn:hover {
+    background: rgba(56, 189, 248, 0.2);
+}
+
+.successMsg {
+    padding: var(--space-3) var(--space-4);
+    background: rgba(52, 211, 153, 0.1);
+    border-top: 1px solid rgba(52, 211, 153, 0.3);
+    color: var(--color-accent-success);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Local Practice */
+.localCommands {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.commandRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--color-bg-terminal);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    border: 1px solid var(--color-border);
+}
+
+.commandText {
+    flex: 1;
+    color: var(--color-text-primary);
+}
+
+.copyBtn {
+    padding: var(--space-1) var(--space-2);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.copyBtn:hover {
+    color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+}
+
+/* Checkpoint */
+.quizOptions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.quizOption {
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+}
+
+.quizOption:hover {
+    border-color: var(--color-accent-primary);
+    color: var(--color-text-primary);
+}
+
+.quizCorrect {
+    border-color: var(--color-accent-success) !important;
+    background: rgba(52, 211, 153, 0.1);
+    color: var(--color-accent-success) !important;
+}
+
+.quizWrong {
+    border-color: var(--color-accent-danger) !important;
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--color-accent-danger) !important;
+}
+
+.quizExplanation {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(56, 189, 248, 0.05);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    animation: fadeIn 0.3s ease;
+}
+
+/* Chapter Complete */
+.completeSection {
+    text-align: center;
+    padding: var(--space-8);
+}
+
+.completeIcon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: var(--space-4);
+    animation: badge-pop 0.6s ease forwards;
+}
+
+.completeTitle {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.completeXP {
+    font-size: var(--text-lg);
+    color: var(--color-accent-xp);
+    font-weight: 600;
+}
+
+.completeActions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+}

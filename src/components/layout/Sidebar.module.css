@@ -1,0 +1,87 @@
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--color-bg-sidebar);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 200;
+    overflow-y: auto;
+}
+
+.sidebarLogo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebarLogoIcon {
+    font-size: 1.75rem;
+}
+
+.sidebarLogoText {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav {
+    flex: 1;
+    padding: var(--space-4) 0;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-left: 3px solid transparent;
+    text-decoration: none;
+}
+
+.navItem:hover {
+    color: var(--color-text-primary);
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.navItemActive {
+    color: var(--color-accent-primary);
+    background: rgba(56, 189, 248, 0.08);
+    border-left-color: var(--color-accent-primary);
+}
+
+.navIcon {
+    font-size: var(--text-lg);
+    width: 24px;
+    text-align: center;
+}
+
+.navLabel {
+    flex: 1;
+}
+
+.sidebarFooter {
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--color-border);
+}
+
+.streakBadge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-accent-warning);
+}
