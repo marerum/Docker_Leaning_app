@@ -24,11 +24,13 @@ gantt
     プレミアムコンテンツ分離      :p3b, after p3a, 2w
 
     section Phase 4: Content Expansion
-    Kubernetes コース追加        :p4a, after p3b, 4w
-    CI/CD・GitHub Actions コース :p4b, after p4a, 3w
+    コンテンツCMS化             :p4a, after p3b, 3w
+    コンテンツ自動更新基盤       :p4b, after p4a, 2w
+    Kubernetes コース追加        :p4c, after p4b, 4w
+    CI/CD・GitHub Actions コース :p4d, after p4c, 3w
 
     section Phase 5: Community
-    コミュニティ・フォーラム      :p5a, after p4b, 4w
+    コミュニティ・フォーラム      :p5a, after p4d, 4w
     UGCコンテンツ基盤           :p5b, after p5a, 3w
 
     section Phase 6: Scale
@@ -313,7 +315,86 @@ erDiagram
 - `required_plan` でプラン別コンテンツゲーティング
 - `EXERCISE` / `EXPECTED_COMMAND` はテクノロジー非依存（Docker以外でも同じ仕組みで演習可能）
 
-### 4.2 追加コンテンツ候補
+### 4.2 コンテンツCMS化
+
+> [!IMPORTANT]
+> コンテンツをハードコード（`chapters.ts`）からDB/CMS管理に移行し、非エンジニアでも更新可能にする。自動更新機能の前提基盤。
+
+| 項目 | 内容 |
+|------|------|
+| **コンテンツDB** | PostgreSQL + jsonb でチャプターデータを管理 |
+| **管理画面** | Admin ロール用のCMS UI（コンテンツ編集・プレビュー） |
+| **バージョン管理** | コンテンツの変更履歴・ロールバック機能 |
+| **APIエンドポイント** | `/api/chapters` でコンテンツ配信 |
+
+### 4.3 コンテンツ自動更新パイプライン
+
+技術ドキュメントのバージョンアップに伴うコンテンツの陳腐化を防ぐため、公式ドキュメントの変更を自動検知し、コンテンツ更新を半自動化する。
+
+```mermaid
+graph LR
+    subgraph Monitor["📡 監視"]
+        RSS["Docker公式\nRelease Notes"]
+        Docs["公式ドキュメント\n差分検出"]
+    end
+
+    subgraph Detect["🔍 差分検出"]
+        GHA["GitHub Actions\n定期クロール"]
+        Diff["差分抽出\n+ 影響分析"]
+    end
+
+    subgraph Update["🤖 更新"]
+        LLM["LLM API\n更新ドラフト生成"]
+        PR["自動PR作成\nレビュー依頼"]
+    end
+
+    subgraph Deploy["🚀 反映"]
+        Review["人間レビュー\n承認"]
+        CMS["CMS反映\n本番更新"]
+    end
+
+    RSS --> GHA
+    Docs --> GHA
+    GHA --> Diff
+    Diff --> LLM
+    LLM --> PR
+    PR --> Review
+    Review --> CMS
+```
+
+#### 実装ステップ
+
+| ステップ | 内容 | 技術 |
+|---------|------|------|
+| **Step 1** コマンドメタデータ | コマンドにバージョン情報を付与 | `since`, `deprecated`, `replaces` フィールド |
+| **Step 2** 差分検出 | Docker公式リリースノート・ドキュメントの変更を定期チェック | GitHub Actions (cron) + Web Scraping |
+| **Step 3** 影響分析 | 変更がどのチャプターに影響するか判定 | キーワードマッチ + LLM分類 |
+| **Step 4** ドラフト生成 | 影響チャプターの更新案をLLMで自動生成 | GPT / Gemini API |
+| **Step 5** レビューフロー | 更新案をPR/Issue化し、人間がレビュー・承認 | GitHub API + 管理画面通知 |
+
+#### コマンドメタデータの例
+
+```typescript
+// 将来のデータ構造
+interface CommandMeta {
+  command: string;          // "docker compose up"
+  since: string;            // "v2.0.0"
+  deprecated: string | null; // null = 現行
+  replaces: string | null;  // "docker-compose up" (旧コマンド)
+  docUrl: string;           // 公式ドキュメントURL
+  lastVerified: string;     // "2026-02-28" 最終確認日
+}
+```
+
+#### 対象テクノロジーの監視ソース
+
+| テクノロジー | 監視ソース |
+|-------------|------------|
+| **Docker** | [docs.docker.com](https://docs.docker.com), [GitHub Releases](https://github.com/docker/cli/releases) |
+| **Kubernetes** | [kubernetes.io/docs](https://kubernetes.io/docs), Release Notes |
+| **GitHub Actions** | [docs.github.com](https://docs.github.com/en/actions), Changelog |
+
+### 4.4 追加コンテンツ候補
 
 | テクノロジー | 初期コース案 | 優先度 |
 |-------------|-------------|--------|
@@ -323,7 +404,7 @@ erDiagram
 | **Linux基礎** | コマンドライン入門 → シェルスクリプト | ★★ Docker前提知識として |
 | **Git** | バージョン管理基礎 → チーム開発 | ★ |
 
-### 4.3 コミュニティ機能
+### 4.5 コミュニティ機能
 
 | 機能 | 概要 |
 |------|------|
@@ -401,7 +482,8 @@ graph TB
 | 対象 | MVP段階でやること | 将来フェーズで拡張 |
 |------|-----------------|-------------------|
 | **データアクセス** | `UserProgressStore` インターフェース抽象化 | API Store へ差し替え |
-| **コンテンツ構造** | JSON定義で `technology > course > chapter` の階層を意識 | DB テーブルへ移行 |
+| **コンテンツ構造** | JSON定義で `technology > course > chapter` の階層を意識 | DB テーブルへ移行 → CMS化 |
+| **コンテンツ鮮度** | コマンドにバージョン情報のメタデータ設計を意識 | 自動更新パイプライン構築 |
 | **認証** | ヘッダーに「ログイン」ボタンのプレースホルダー | NextAuth.js 組込み |
 | **i18n** | `jsonb` 互換のキー構造で翻訳ファイル管理 | DB の jsonb フィールドへ移行 |
 | **セキュリティ** | CSP / XSS / 入力検証を初期実装 | OAuth / 決済セキュリティを追加 |
