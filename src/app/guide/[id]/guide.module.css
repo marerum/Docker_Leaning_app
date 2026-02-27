@@ -267,6 +267,13 @@
     white-space: pre-wrap;
     color: var(--color-text-secondary);
     margin-bottom: var(--space-2);
+    user-select: text;
+    cursor: text;
+}
+
+.terminalOutput ::selection {
+    background: rgba(56, 189, 248, 0.3);
+    color: var(--color-text-primary);
 }
 
 .terminalPrompt {

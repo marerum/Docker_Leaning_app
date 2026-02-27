@@ -13,7 +13,7 @@ const en = {
     },
 
     nav: {
-        guide: 'Guide',
+        guide: 'Main Curriculum',
         practice: 'Practice',
         dictionary: 'Dictionary',
         challenge: 'Challenge',

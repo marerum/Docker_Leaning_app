@@ -216,7 +216,12 @@ function SimulationSection({ chapter, locale, t }: { chapter: ChapterData; local
                     <span className={styles.terminalTitle}>{t.terminal.title}</span>
                 </div>
 
-                <div className={styles.terminalBody} ref={bodyRef} onClick={() => inputRef.current?.focus()}>
+                <div className={styles.terminalBody} ref={bodyRef} onClick={() => {
+                    const selection = window.getSelection();
+                    if (!selection || selection.isCollapsed) {
+                        inputRef.current?.focus();
+                    }
+                }}>
                     {history.map((item, i) => (
                         <div key={i} className={styles.terminalOutput}>
                             {item.type === 'prompt' && <span style={{ color: 'var(--color-accent-primary)' }}>💡 {item.text}</span>}

@@ -15,7 +15,7 @@ const ja = {
 
   // Navigation
   nav: {
-    guide: 'ガイド',
+    guide: 'メインカリキュラム',
     practice: '演習',
     dictionary: '辞書',
     challenge: 'チャレンジ',
