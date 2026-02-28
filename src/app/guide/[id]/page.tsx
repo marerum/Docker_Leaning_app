@@ -13,6 +13,7 @@ function renderMarkdown(text: string): string {
     return text
         .replace(/^### (.+)$/gm, '<h3>$1</h3>')
         .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;" />')
         .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/^- (.+)$/gm, '<li>$1</li>')
@@ -31,6 +32,11 @@ export default function GuidePage() {
     const chapterId = Number(params?.id);
     const chapter = getChapter(chapterId);
     const { locale, os, t } = useI18n();
+
+    // Scroll to top when navigating to a different chapter
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [chapterId]);
 
     if (!chapter) {
         return (
