@@ -12,8 +12,8 @@ interface SidebarProps {
 }
 
 const LEVEL_LABELS = {
-    ja: ['Docker 基礎', 'Dockerfile & イメージ', 'Docker Compose'],
-    en: ['Docker Basics', 'Dockerfile & Images', 'Docker Compose'],
+    ja: ['Docker 基礎', 'Dockerfile & イメージ', 'Docker Compose', '実践・運用スキル（工事中）', 'CI/CD・チーム開発（工事中）'],
+    en: ['Docker Basics', 'Dockerfile & Images', 'Docker Compose', 'Practice & Operations (WIP)', 'CI/CD & Team Dev (WIP)'],
 };
 
 export default function Sidebar({ streak }: SidebarProps) {
@@ -45,7 +45,7 @@ export default function Sidebar({ streak }: SidebarProps) {
         : null;
 
     // Group chapters by level
-    const chaptersByLevel = [1, 2, 3].map(level => ({
+    const chaptersByLevel = [1, 2, 3, 4, 5].map(level => ({
         level,
         label: LEVEL_LABELS[locale][level - 1],
         chapters: chapters.filter(c => c.level === level),

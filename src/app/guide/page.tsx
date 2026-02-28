@@ -8,6 +8,8 @@ const LEVEL_META = [
     { level: 1, icon: '🐳', ja: 'Docker 基礎', en: 'Docker Basics' },
     { level: 2, icon: '📝', ja: 'Dockerfile & イメージ', en: 'Dockerfile & Images' },
     { level: 3, icon: '🎼', ja: 'Docker Compose', en: 'Docker Compose' },
+    { level: 4, icon: '🔍', ja: '実践・運用スキル', en: 'Practice & Operations' },
+    { level: 5, icon: '⚡', ja: 'CI/CD・チーム開発', en: 'CI/CD & Team Dev' },
 ];
 
 export default function GuideLandingPage() {
@@ -20,8 +22,8 @@ export default function GuideLandingPage() {
             </h1>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
                 {locale === 'ja'
-                    ? 'Docker の基礎から Docker Compose まで、ステップバイステップで学べるカリキュラムです。'
-                    : 'A step-by-step curriculum covering Docker basics to Docker Compose.'}
+                    ? 'Docker の基礎から CI/CD まで、ステップバイステップで学べるカリキュラムです。'
+                    : 'A step-by-step curriculum from Docker basics to CI/CD.'}
             </p>
 
             {LEVEL_META.map(({ level, icon, ja, en }) => {

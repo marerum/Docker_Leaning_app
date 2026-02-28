@@ -303,8 +303,8 @@ a1b2c3d4e5f6   hello-world   "/hello"   2 seconds ago   Exited (0) 1 second ago 
         ],
         concept: {
             content: {
-                ja: '## コンテナのライフサイクル\n\n```\n作成 → 起動 → (実行中) → 停止 → 削除\n │      │                │      │\ncreate  start             stop   rm\n └── run (create + start) ──┘\n```\n\n### よく使うコマンド\n- `docker run -d` : バックグラウンドで起動（-d = detach）\n- `docker ps` : 稼働中のコンテナ一覧\n- `docker stop <ID>` : コンテナを停止\n- `docker rm <ID>` : コンテナを削除',
-                en: '## Container Lifecycle\n\n```\nCreate → Start → (Running) → Stop → Remove\n │       │                  │      │\ncreate   start              stop   rm\n └── run (create + start) ──┘\n```\n\n### Common Commands\n- `docker run -d` : Run in background (-d = detach)\n- `docker ps` : List running containers\n- `docker stop <ID>` : Stop a container\n- `docker rm <ID>` : Remove a container',
+                ja: '## コンテナのライフサイクル\n\n```\n作成 → 起動 → (実行中) → 停止 → 削除\n │      │                │      │\ncreate  start             stop   rm\n └── run (create + start) ──┘\n```\n\n### よく使うコマンド\n- `docker run -d` : バックグラウンドで起動（-d = detach）\n- `docker ps` : 稼働中のコンテナ一覧\n- `docker stop <ID>` : コンテナを停止\n- `docker rm <ID>` : コンテナを削除\n\n---\n\n## 🌐 本カリキュラムで使う「nginx」とは？\n\n本カリキュラムの練習では、主に **nginx（エンジンエックス）** というイメージを使います。\n\nnginx は世界中で広く使われている**軽量なWebサーバー**です。Docker公式イメージが提供されており、`docker run` するだけでWebサーバーが即座に立ち上がるため、Dockerの練習に最適です。\n\n```\ndocker run -d nginx\n```\n\nこのコマンドで、nginx の公式イメージからコンテナが作成され、Webサーバーとして起動します。\n\n### 💡 補足：nginx 以外のよく使うイメージ\n\n`docker run -d` の後に指定するのは**Docker イメージ名**です。他にも様々なイメージがあります：\n\n| イメージ名 | 説明 |\n|-----------|------|\n| `nginx` | 軽量Webサーバー。静的サイトのホスティング等に使用 |\n| `httpd` | Apache HTTP Server。定番Webサーバー |\n| `ubuntu` | Ubuntu OS。Linux コマンドの練習に便利 |\n| `node` | Node.js 実行環境。JavaScriptアプリの開発に |\n| `python` | Python 実行環境。スクリプトの開発に |\n| `postgres` | PostgreSQL データベース |\n\nnginx 以外でも試したい場合は、`docker run -d` の後のイメージ名を変えるだけです。',
+                en: '## Container Lifecycle\n\n```\nCreate → Start → (Running) → Stop → Remove\n │       │                  │      │\ncreate   start              stop   rm\n └── run (create + start) ──┘\n```\n\n### Common Commands\n- `docker run -d` : Run in background (-d = detach)\n- `docker ps` : List running containers\n- `docker stop <ID>` : Stop a container\n- `docker rm <ID>` : Remove a container\n\n---\n\n## 🌐 About "nginx" Used in This Curriculum\n\nIn this curriculum, we mainly use **nginx (engine-x)** images for practice.\n\nnginx is a widely-used **lightweight web server**. Docker provides an official image, and a single `docker run` command instantly starts a web server — making it perfect for Docker practice.\n\n```\ndocker run -d nginx\n```\n\nThis command creates a container from the official nginx image and starts it as a web server.\n\n### 💡 Supplement: Other Common Images\n\nThe name after `docker run -d` is a **Docker image name**. Many other images are available:\n\n| Image | Description |\n|-------|-------------|\n| `nginx` | Lightweight web server |\n| `httpd` | Apache HTTP Server |\n| `ubuntu` | Ubuntu OS. Great for Linux command practice |\n| `node` | Node.js runtime |\n| `python` | Python runtime |\n| `postgres` | PostgreSQL database |\n\nTo try other images, just change the image name after `docker run -d`.',
             },
         },
         simulation: [
@@ -1168,6 +1168,882 @@ PGDATA=/var/lib/postgresql/data`,
         ],
         completionXP: 100,
     },
+
+    // Chapter 13
+    {
+        id: 13,
+        slug: 'healthcheck-logs',
+        level: 3,
+        icon: '🩺',
+        title: { ja: 'ヘルスチェックとログ', en: 'Health Checks & Logs' },
+        intro: {
+            overview: {
+                ja: 'コンテナの稼働状態を監視する healthcheck と、ログ管理の基本を学びます。障害を早期に検知し、効率的にデバッグするスキルを身につけます。',
+                en: 'Learn healthcheck monitoring and log management basics. Gain skills to detect issues early and debug efficiently.',
+            },
+            why: {
+                ja: 'コンテナが「起動している」のと「正常に動いている」のは別の話です。healthcheck を定義しないと、アプリがクラッシュしてもコンテナは Running のまま。ログを適切に管理しないと、問題発生時に原因調査ができません。',
+                en: 'A container being "running" and "working properly" are different things. Without healthcheck, a crashed app keeps the container Running. Without proper logging, you cannot investigate issues.',
+            },
+            before: { ja: 'コンテナが動いているか分からない。問題が起きてもログが散在して調査困難。', en: 'No visibility into container health. Logs scattered, hard to investigate issues.' },
+            after: { ja: 'healthcheck で異常を自動検知。docker compose logs で一元的にログ確認。', en: 'Auto-detect issues with healthcheck. Centralized logging with docker compose logs.' },
+        },
+        goals: [
+            { ja: 'healthcheck の仕組みと書き方を理解する', en: 'Understand healthcheck mechanics and syntax' },
+            { ja: 'docker compose logs でログを効率的に確認できる', en: 'Efficiently check logs with docker compose logs' },
+            { ja: 'コンテナの状態を監視・判断できる', en: 'Monitor and assess container health' },
+        ],
+        concept: {
+            content: {
+                ja: '## ヘルスチェック\n\nコンテナ内のアプリが**正常に応答しているか**を定期的に確認する仕組みです。\n\n### docker-compose.yml での定義\n```\nservices:\n  web:\n    image: nginx\n    healthcheck:\n      test: ["CMD", "curl", "-f", "http://localhost"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n      start_period: 10s\n```\n\n### ヘルスステータス\n\n| ステータス | 意味 |\n|-----------|------|\n| `starting` | 起動中（start_period 内） |\n| `healthy` | ヘルスチェック成功 |\n| `unhealthy` | ヘルスチェック失敗（retries 回連続） |\n\n---\n\n## ログ管理\n\n### 基本コマンド\n- `docker compose logs` : 全サービスのログを表示\n- `docker compose logs web` : 特定サービスのログ\n- `docker compose logs -f` : リアルタイムでログを追跡\n- `docker compose logs --tail 50` : 最新50行のみ表示\n- `docker compose logs --since 1h` : 直近1時間のログ',
+                en: '## Health Checks\n\nA mechanism to periodically verify that the app inside a container is **responding normally**.\n\n### Definition in docker-compose.yml\n```\nservices:\n  web:\n    image: nginx\n    healthcheck:\n      test: ["CMD", "curl", "-f", "http://localhost"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n      start_period: 10s\n```\n\n### Health Statuses\n\n| Status | Meaning |\n|--------|---------|\n| `starting` | Starting up (within start_period) |\n| `healthy` | Health check passed |\n| `unhealthy` | Health check failed (retries consecutive) |\n\n---\n\n## Log Management\n\n### Basic Commands\n- `docker compose logs` : Show all service logs\n- `docker compose logs web` : Logs for specific service\n- `docker compose logs -f` : Follow logs in real-time\n- `docker compose logs --tail 50` : Show last 50 lines\n- `docker compose logs --since 1h` : Logs from last hour',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: 'サービスのヘルス状態を確認しましょう', en: 'Check the health status of services' },
+                expectedCommand: 'docker compose ps',
+                alternativeCommands: ['docker-compose ps'],
+                output: `NAME           SERVICE   STATUS                    PORTS
+myapp-web-1    web       Up 2 minutes (healthy)    0.0.0.0:8080->80/tcp
+myapp-db-1     db        Up 2 minutes (healthy)    5432/tcp`,
+                hint: { ja: 'docker compose ps でステータスとヘルス状態を確認', en: 'Use docker compose ps to check status and health' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'web サービスのログをリアルタイムで追跡しましょう', en: 'Follow the web service logs in real-time' },
+                expectedCommand: 'docker compose logs -f web',
+                alternativeCommands: ['docker-compose logs -f web'],
+                output: `myapp-web-1  | 172.18.0.1 - - [01/Mar/2026:00:00:01 +0000] "GET / HTTP/1.1" 200 615
+myapp-web-1  | 172.18.0.1 - - [01/Mar/2026:00:00:02 +0000] "GET /api/health HTTP/1.1" 200 2`,
+                hint: { ja: '-f オプションでリアルタイム追跡。サービス名を指定で絞り込み', en: 'Use -f for real-time follow. Specify service name to filter' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: '直近30分のログだけを表示しましょう', en: 'Show only logs from the last 30 minutes' },
+                expectedCommand: 'docker compose logs --since 30m',
+                alternativeCommands: ['docker-compose logs --since 30m'],
+                output: `myapp-web-1  | 172.18.0.1 - - [01/Mar/2026:00:30:01 +0000] "GET / HTTP/1.1" 200 615
+myapp-db-1   | 2026-03-01 00:30:00.123 UTC [1] LOG:  checkpoint complete`,
+                hint: { ja: '--since 30m で直近30分に絞り込み', en: 'Use --since 30m to filter to last 30 minutes' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'docker-compose.yml に healthcheck を追加し、docker compose ps で healthy 状態を確認しましょう。docker compose logs -f でリアルタイムにログを監視してみましょう。',
+                en: 'Add healthcheck to docker-compose.yml, verify healthy status with docker compose ps. Monitor logs in real-time with docker compose logs -f.',
+            },
+            commands: ['docker compose up -d', 'docker compose ps', 'docker compose logs -f web', 'docker compose logs --since 30m'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'healthcheck の retries: 3 は何を意味する？',
+                    en: 'What does healthcheck retries: 3 mean?',
+                },
+                options: [
+                    { ja: '3秒ごとにチェックする', en: 'Check every 3 seconds' },
+                    { ja: '3回連続失敗で unhealthy とする', en: 'Mark unhealthy after 3 consecutive failures' },
+                    { ja: '最大3回までチェックする', en: 'Check a maximum of 3 times' },
+                    { ja: '3つのエンドポイントをチェックする', en: 'Check 3 endpoints' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'retries はヘルスチェックが何回連続で失敗したら unhealthy とするかを定義します。3回連続失敗で初めて unhealthy 状態になります。',
+                    en: 'retries defines how many consecutive failures trigger the unhealthy state. The container becomes unhealthy only after 3 consecutive failures.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 14
+    {
+        id: 14,
+        slug: 'dev-workflow',
+        level: 3,
+        icon: '🔄',
+        title: { ja: '開発ワークフロー実践', en: 'Development Workflow' },
+        intro: {
+            overview: {
+                ja: 'Docker Compose を使った効率的な開発ワークフローを学びます。ホットリロード、compose.override.yml による環境分離を実践します。',
+                en: 'Learn efficient development workflows with Docker Compose. Practice hot-reloading and environment separation with compose.override.yml.',
+            },
+            why: {
+                ja: 'コードを変えるたびに docker build & docker compose up し直すのは非効率です。bind mount を使えばホストのコード変更が即座にコンテナに反映されます。また、開発と本番で異なる設定が必要な場合、compose.override.yml で分離できます。',
+                en: 'Rebuilding and restarting containers for every code change is inefficient. Bind mounts reflect host code changes instantly. compose.override.yml separates dev and production configs.',
+            },
+            before: { ja: 'コード変更のたびにビルド→再起動。開発と本番の設定が混在。', en: 'Build & restart for every change. Dev and production configs mixed.' },
+            after: { ja: 'コード変更が即反映。開発と本番の設定を明確に分離。', en: 'Changes reflected instantly. Dev and production configs cleanly separated.' },
+        },
+        goals: [
+            { ja: 'bind mount でホットリロード環境を構築できる', en: 'Set up hot-reload with bind mounts' },
+            { ja: 'compose.override.yml で環境別設定を管理できる', en: 'Manage environment configs with compose.override.yml' },
+            { ja: '効率的な開発サイクルを実践できる', en: 'Practice an efficient development cycle' },
+        ],
+        concept: {
+            content: {
+                ja: '## 開発用ホットリロード\n\nbind mount を使って、ホストのソースコードをコンテナにリアルタイム同期します。\n\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n    volumes:\n      - ./src:/app/src    # ソースコードを同期\n      - /app/node_modules # node_modules は除外\n    command: npm run dev  # 開発用コマンド\n```\n\n---\n\n## 環境別設定の分離\n\n### ファイル構成\n- `compose.yml` : 共通設定（ベース）\n- `compose.override.yml` : 開発用の追加設定（自動読み込み）\n- `compose.prod.yml` : 本番用設定\n\n### compose.yml（共通）\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n  db:\n    image: postgres:15\n```\n\n### compose.override.yml（開発用・自動読み込み）\n```\nservices:\n  web:\n    volumes:\n      - ./src:/app/src\n    command: npm run dev\n    environment:\n      - DEBUG=true\n```\n\n### 本番起動時\n- `docker compose up` → compose.yml + compose.override.yml（開発）\n- `docker compose -f compose.yml -f compose.prod.yml up` → 本番',
+                en: '## Hot-Reload for Development\n\nUse bind mounts to sync host source code to containers in real-time.\n\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n    volumes:\n      - ./src:/app/src    # Sync source code\n      - /app/node_modules # Exclude node_modules\n    command: npm run dev  # Dev command\n```\n\n---\n\n## Separating Environment Configs\n\n### File Structure\n- `compose.yml` : Base/common config\n- `compose.override.yml` : Dev overrides (auto-loaded)\n- `compose.prod.yml` : Production config\n\n### compose.yml (Base)\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n  db:\n    image: postgres:15\n```\n\n### compose.override.yml (Dev - auto-loaded)\n```\nservices:\n  web:\n    volumes:\n      - ./src:/app/src\n    command: npm run dev\n    environment:\n      - DEBUG=true\n```\n\n### Production Launch\n- `docker compose up` → compose.yml + compose.override.yml (dev)\n- `docker compose -f compose.yml -f compose.prod.yml up` → production',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: 'bind mount 付きで開発サーバーを起動しましょう', en: 'Start the dev server with bind mounts' },
+                expectedCommand: 'docker compose up -d',
+                alternativeCommands: ['docker-compose up -d'],
+                output: `[+] Running 2/2
+ ✔ Container myapp-db-1   Started
+ ✔ Container myapp-web-1  Started
+(compose.override.yml auto-loaded: bind mount + dev mode active)`,
+                hint: { ja: 'compose.override.yml は自動読み込みされます', en: 'compose.override.yml is auto-loaded' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: '本番用の設定でサービスを起動しましょう', en: 'Start services with production config' },
+                expectedCommand: 'docker compose -f compose.yml -f compose.prod.yml up -d',
+                alternativeCommands: ['docker-compose -f compose.yml -f compose.prod.yml up -d'],
+                output: `[+] Running 2/2
+ ✔ Container myapp-db-1   Started
+ ✔ Container myapp-web-1  Started
+(Production mode: no bind mount, optimized build)`,
+                hint: { ja: '-f で使用するファイルを明示指定。override は読み込まれません', en: 'Use -f to specify files explicitly. Override is not loaded' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'compose.yml と compose.override.yml を作成し、開発時は自動的にホットリロードが有効になることを確認しましょう。',
+                en: 'Create compose.yml and compose.override.yml, verify that hot-reload is automatically enabled during development.',
+            },
+            commands: ['docker compose up -d', 'docker compose config', 'docker compose -f compose.yml -f compose.prod.yml config'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'compose.override.yml について正しいものは？',
+                    en: 'Which is correct about compose.override.yml?',
+                },
+                options: [
+                    { ja: '手動で -f オプションで指定する必要がある', en: 'Must be specified manually with -f option' },
+                    { ja: 'docker compose up 時に自動で読み込まれる', en: 'Automatically loaded on docker compose up' },
+                    { ja: '本番環境でのみ使用される', en: 'Used only in production' },
+                    { ja: 'compose.yml より先に読み込まれる', en: 'Loaded before compose.yml' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'compose.override.yml は docker compose up 時に自動的に compose.yml とマージされます。開発用の設定（bind mount、デバッグモード等）を書くのに最適です。',
+                    en: 'compose.override.yml is automatically merged with compose.yml on docker compose up. It\'s ideal for dev settings like bind mounts and debug mode.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 15
+    {
+        id: 15,
+        slug: 'compose-project',
+        level: 3,
+        icon: '🏗️',
+        title: { ja: 'Compose 実践プロジェクト', en: 'Compose Hands-on Project' },
+        intro: {
+            overview: {
+                ja: 'Web(Node.js) + DB(PostgreSQL) + Cache(Redis) の3サービス構成を一から構築する総合演習です。Level 3 で学んだ知識を統合します。',
+                en: 'A comprehensive exercise building a 3-service stack (Node.js + PostgreSQL + Redis) from scratch. Integrates all Level 3 knowledge.',
+            },
+            why: {
+                ja: '個々の機能を学んだだけでは、実際のプロジェクトで組み合わせる時に戸惑います。この演習で healthcheck、volumes、environment、depends_on を全て使った実践的な構成を体験します。',
+                en: 'Learning individual features isn\'t enough — combining them in real projects is where challenges arise. This exercise uses healthcheck, volumes, environment, and depends_on together.',
+            },
+            before: { ja: '個別の機能は分かるが、組み合わせ方が分からない。', en: 'Individual features understood, but combining them is unclear.' },
+            after: { ja: '実践的な3サービス構成を自力で構築できる。', en: 'Can build a practical 3-service stack independently.' },
+        },
+        goals: [
+            { ja: 'Web + DB + Cache の3サービス構成を構築できる', en: 'Build a Web + DB + Cache 3-service stack' },
+            { ja: '学んだ機能を組み合わせて実践できる', en: 'Combine learned features in practice' },
+            { ja: '実務に近いCompose構成を理解する', en: 'Understand production-like Compose configurations' },
+        ],
+        concept: {
+            content: {
+                ja: '## 3サービス構成\n\n### アーキテクチャ\n- **web** : Node.js アプリ（ポート3000）\n- **db** : PostgreSQL（データ永続化）\n- **cache** : Redis（セッション・キャッシュ）\n\n### 完成形 docker-compose.yml\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n    depends_on:\n      db:\n        condition: service_healthy\n      cache:\n        condition: service_started\n    environment:\n      DATABASE_URL: postgres://user:pass@db:5432/myapp\n      REDIS_URL: redis://cache:6379\n\n  db:\n    image: postgres:15\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n    environment:\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: pass\n      POSTGRES_DB: myapp\n    healthcheck:\n      test: ["CMD-SHELL", "pg_isready -U user"]\n      interval: 10s\n      retries: 5\n\n  cache:\n    image: redis:7-alpine\n    volumes:\n      - redis-data:/data\n\nvolumes:\n  pgdata:\n  redis-data:\n```\n\n### ポイント\n- `depends_on` + `condition: service_healthy` でDBの準備完了を待つ\n- 各サービスは**サービス名**でアクセス（db:5432, cache:6379）\n- volumes で DB と Cache のデータを永続化',
+                en: '## 3-Service Architecture\n\n### Components\n- **web** : Node.js app (port 3000)\n- **db** : PostgreSQL (persistent data)\n- **cache** : Redis (session/cache)\n\n### Complete docker-compose.yml\n```\nservices:\n  web:\n    build: .\n    ports:\n      - "3000:3000"\n    depends_on:\n      db:\n        condition: service_healthy\n      cache:\n        condition: service_started\n    environment:\n      DATABASE_URL: postgres://user:pass@db:5432/myapp\n      REDIS_URL: redis://cache:6379\n\n  db:\n    image: postgres:15\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n    environment:\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: pass\n      POSTGRES_DB: myapp\n    healthcheck:\n      test: ["CMD-SHELL", "pg_isready -U user"]\n      interval: 10s\n      retries: 5\n\n  cache:\n    image: redis:7-alpine\n    volumes:\n      - redis-data:/data\n\nvolumes:\n  pgdata:\n  redis-data:\n```\n\n### Key Points\n- `depends_on` + `condition: service_healthy` waits for DB readiness\n- Services access each other by **service name** (db:5432, cache:6379)\n- volumes persist DB and Cache data',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: '3サービス構成を起動しましょう', en: 'Start the 3-service stack' },
+                expectedCommand: 'docker compose up -d',
+                alternativeCommands: ['docker-compose up -d'],
+                output: `[+] Running 4/4
+ ✔ Network myapp_default    Created
+ ✔ Container myapp-cache-1  Started
+ ✔ Container myapp-db-1     Started
+ ✔ Container myapp-web-1    Started`,
+                hint: { ja: 'docker compose up -d で全サービスをバックグラウンド起動', en: 'Use docker compose up -d to start all services in background' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: '全サービスの状態を確認しましょう', en: 'Check all service statuses' },
+                expectedCommand: 'docker compose ps',
+                alternativeCommands: ['docker-compose ps'],
+                output: `NAME             SERVICE   STATUS                    PORTS
+myapp-cache-1    cache     Up 30 seconds             6379/tcp
+myapp-db-1       db        Up 30 seconds (healthy)   5432/tcp
+myapp-web-1      web       Up 25 seconds             0.0.0.0:3000->3000/tcp`,
+                hint: { ja: 'docker compose ps で各サービスの状態確認', en: 'Use docker compose ps to check each service status' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: '全サービスを停止して片付けましょう', en: 'Stop and clean up all services' },
+                expectedCommand: 'docker compose down',
+                alternativeCommands: ['docker-compose down'],
+                output: `[+] Running 4/4
+ ✔ Container myapp-web-1    Removed
+ ✔ Container myapp-db-1     Removed
+ ✔ Container myapp-cache-1  Removed
+ ✔ Network myapp_default    Removed`,
+                hint: { ja: 'docker compose down で全サービスを停止・削除', en: 'Use docker compose down to stop and remove all services' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'Web + DB + Cache の3サービス構成を docker-compose.yml に定義し、起動してみましょう。各サービスが正しく連携していることを確認します。',
+                en: 'Define a Web + DB + Cache 3-service stack in docker-compose.yml and start it. Verify that services communicate correctly.',
+            },
+            commands: ['docker compose up -d', 'docker compose ps', 'docker compose logs', 'docker compose down'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'depends_on の condition: service_healthy の意味は？',
+                    en: 'What does depends_on condition: service_healthy mean?',
+                },
+                options: [
+                    { ja: 'サービスが起動したら次に進む', en: 'Proceed when service starts' },
+                    { ja: 'サービスのヘルスチェックが成功したら次に進む', en: 'Proceed when service health check passes' },
+                    { ja: 'サービスを3回再起動してから次に進む', en: 'Restart service 3 times then proceed' },
+                    { ja: 'サービスのポートが開いたら次に進む', en: 'Proceed when service port is open' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'condition: service_healthy は、依存先のサービスが healthcheck に成功（healthy状態）になるまで、自サービスの起動を待機します。DBの初期化完了を待ってからWebアプリを起動する場合に重要です。',
+                    en: 'condition: service_healthy waits until the dependency\'s healthcheck passes (healthy state) before starting your service. Essential for waiting until DB initialization is complete.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // ─────────────────────────────────────────────
+    // Level 4: 実践・運用スキル
+    // ─────────────────────────────────────────────
+
+    // Chapter 16
+    {
+        id: 16,
+        slug: 'debug-troubleshoot',
+        level: 4,
+        icon: '🔍',
+        title: { ja: 'デバッグとトラブルシュート', en: 'Debug & Troubleshoot' },
+        intro: {
+            overview: {
+                ja: 'コンテナが動かない時の調査手順と、必須のデバッグコマンドを学びます。docker logs, inspect, stats を使いこなすスキルを獲得します。',
+                en: 'Learn investigation procedures and essential debug commands for broken containers. Master docker logs, inspect, and stats.',
+            },
+            why: {
+                ja: '「コンテナが起動しない」「レスポンスが遅い」「メモリが足りない」— こうした問題は日常的に起きます。原因を素早く特定できるデバッグスキルは、Docker を使う上で最も実用的なスキルの一つです。',
+                en: '"Container won\'t start", "slow response", "out of memory" — these issues occur daily. Quick debugging skills are among the most practical Docker skills.',
+            },
+            before: { ja: 'コンテナが動かない時、原因が分からず途方に暮れる。', en: 'Lost when containers don\'t work, unsure how to investigate.' },
+            after: { ja: 'ログ→inspect→stats の調査フローで原因を素早く特定。', en: 'Quickly identify issues with logs→inspect→stats investigation flow.' },
+        },
+        goals: [
+            { ja: 'エラー調査の基本フローを理解する', en: 'Understand the basic error investigation flow' },
+            { ja: 'docker inspect で詳細情報を確認できる', en: 'Check detailed info with docker inspect' },
+            { ja: 'docker stats でリソース使用状況を監視できる', en: 'Monitor resource usage with docker stats' },
+        ],
+        concept: {
+            content: {
+                ja: '## デバッグの基本フロー\n\n### Step 1: ログを確認\n```\ndocker logs <コンテナ名>\ndocker logs --tail 50 <コンテナ名>\n```\n\n### Step 2: コンテナの詳細を調査\n```\ndocker inspect <コンテナ名>\n```\n- ネットワーク設定、マウント、環境変数、状態を確認\n\n### Step 3: リソース使用量を確認\n```\ndocker stats\n```\n- CPU、メモリ、ネットワークI/Oをリアルタイム監視\n\n### Step 4: コンテナ内部に入って調査\n```\ndocker exec -it <コンテナ名> sh\n```\n\n---\n\n## よくあるトラブルと対処\n\n| 症状 | 確認コマンド | 原因例 |\n|------|------------|--------|\n| 起動しない | `docker logs` | ポート衝突、設定ミス |\n| レスポンス遅い | `docker stats` | メモリ不足、CPU過負荷 |\n| 接続できない | `docker inspect` | ネットワーク設定ミス |\n| ファイルがない | `docker exec` + `ls` | COPY漏れ、パスミス |',
+                en: '## Basic Debug Flow\n\n### Step 1: Check Logs\n```\ndocker logs <container>\ndocker logs --tail 50 <container>\n```\n\n### Step 2: Inspect Container Details\n```\ndocker inspect <container>\n```\n- Check network, mounts, env vars, state\n\n### Step 3: Check Resource Usage\n```\ndocker stats\n```\n- Real-time CPU, memory, network I/O monitoring\n\n### Step 4: Enter Container for Investigation\n```\ndocker exec -it <container> sh\n```\n\n---\n\n## Common Issues & Solutions\n\n| Symptom | Command | Common Cause |\n|---------|---------|-------------|\n| Won\'t start | `docker logs` | Port conflict, config error |\n| Slow response | `docker stats` | Low memory, CPU overload |\n| Can\'t connect | `docker inspect` | Network misconfiguration |\n| Missing files | `docker exec` + `ls` | Missing COPY, wrong path |',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: '起動に失敗したコンテナのログを確認しましょう', en: 'Check logs of a failed container' },
+                expectedCommand: 'docker logs myapp-web-1',
+                alternativeCommands: ['docker logs myapp_web_1'],
+                output: `Error: Cannot find module '/app/server.js'
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1075:15)
+    at Module._load (node:internal/modules/cjs/loader:920:27)
+Node.js v18.19.0`,
+                hint: { ja: 'docker logs <コンテナ名> でエラーメッセージを確認', en: 'Use docker logs <container> to check error messages' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'コンテナのリソース使用状況をリアルタイムで確認しましょう', en: 'Check real-time resource usage' },
+                expectedCommand: 'docker stats',
+                alternativeCommands: ['docker stats --no-stream'],
+                output: `CONTAINER ID   NAME           CPU %   MEM USAGE / LIMIT     MEM %   NET I/O
+a1b2c3d4e5f6   myapp-web-1    0.50%   128MiB / 512MiB       25.00%  1.2kB / 648B
+f6e5d4c3b2a1   myapp-db-1     1.20%   256MiB / 1GiB         25.00%  3.4kB / 1.2kB`,
+                hint: { ja: 'docker stats でCPU・メモリ使用量をリアルタイム監視', en: 'Use docker stats for real-time CPU/memory monitoring' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'コンテナのネットワーク設定を確認しましょう', en: 'Check container network settings' },
+                expectedCommand: 'docker inspect myapp-web-1',
+                alternativeCommands: ['docker inspect myapp_web_1'],
+                output: `[{
+    "NetworkSettings": {
+        "Networks": {
+            "myapp_default": {
+                "IPAddress": "172.18.0.3",
+                "Gateway": "172.18.0.1"
+            }
+        }
+    }
+}]`,
+                hint: { ja: 'docker inspect でコンテナの詳細情報を確認', en: 'Use docker inspect for detailed container info' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: '意図的にエラーを起こし（例：CMD のパスを間違える）、docker logs → docker inspect の調査フローを実践しましょう。',
+                en: 'Intentionally create an error (e.g., wrong CMD path), then practice the docker logs → docker inspect investigation flow.',
+            },
+            commands: ['docker logs <container>', 'docker stats', 'docker inspect <container>', 'docker exec -it <container> sh'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'コンテナが起動しない時、最初に確認すべきコマンドは？',
+                    en: 'What command should you check first when a container won\'t start?',
+                },
+                options: [
+                    { ja: 'docker stats', en: 'docker stats' },
+                    { ja: 'docker inspect', en: 'docker inspect' },
+                    { ja: 'docker logs', en: 'docker logs' },
+                    { ja: 'docker exec', en: 'docker exec' },
+                ],
+                correctIndex: 2,
+                explanation: {
+                    ja: 'コンテナが起動しない場合、まず docker logs でエラーメッセージを確認するのが基本です。ほとんどの場合、ログにエラー原因が出力されています。',
+                    en: 'When a container won\'t start, check docker logs first. In most cases, the error cause is printed in the logs.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 17
+    {
+        id: 17,
+        slug: 'docker-network',
+        level: 4,
+        icon: '🌐',
+        title: { ja: 'Docker ネットワーク', en: 'Docker Networking' },
+        intro: {
+            overview: {
+                ja: 'これまで暗黙的に使っていた Docker ネットワークの仕組みを明確に理解します。bridge, host, none の違いとカスタムネットワークの活用を学びます。',
+                en: 'Explicitly understand Docker networking that you\'ve been using implicitly. Learn bridge, host, none differences and custom network usage.',
+            },
+            why: {
+                ja: 'Compose で「サービス名でアクセスできる」のは、Docker が自動でネットワークを作っているからです。ネットワークの仕組みを理解すれば、マルチプロジェクト間の連携やセキュリティ分離など、より高度な構成が可能になります。',
+                en: 'Services accessing each other by name works because Docker auto-creates networks. Understanding networking enables multi-project communication and security isolation.',
+            },
+            before: { ja: 'ネットワークが「なんとなく動いている」状態。問題が起きると手詰まり。', en: 'Networking "just works" without understanding. Stuck when issues arise.' },
+            after: { ja: 'ネットワークの仕組みを理解し、意図した構成を設計できる。', en: 'Understand networking mechanics and design intentional configurations.' },
+        },
+        goals: [
+            { ja: 'bridge / host / none ネットワークの違いを理解する', en: 'Understand bridge / host / none network differences' },
+            { ja: 'カスタムネットワークを作成・管理できる', en: 'Create and manage custom networks' },
+            { ja: 'ネットワーク分離でセキュリティを向上できる', en: 'Improve security with network isolation' },
+        ],
+        concept: {
+            content: {
+                ja: '## ネットワークドライバ\n\n| ドライバ | 用途 | 特徴 |\n|---------|------|------|\n| `bridge` | **デフォルト** | コンテナ間通信可能。最も一般的 |\n| `host` | ホストと同じネットワーク | ポートマッピング不要。パフォーマンス重視 |\n| `none` | ネットワークなし | 完全に隔離。セキュリティ重視 |\n\n### Compose のデフォルト動作\n- `docker compose up` すると `プロジェクト名_default` ネットワークが自動作成\n- 同じ Compose 内のサービスは**サービス名**で互いにアクセス可能\n\n---\n\n## カスタムネットワーク\n\n### なぜ使うか\n- **セキュリティ分離**: フロントエンドとDBを別ネットワークに\n- **マルチプロジェクト**: 異なるプロジェクト間でサービスを共有\n\n```\nservices:\n  web:\n    networks:\n      - frontend\n      - backend\n  db:\n    networks:\n      - backend  # web からのみアクセス可能\n\nnetworks:\n  frontend:\n  backend:\n```',
+                en: '## Network Drivers\n\n| Driver | Use Case | Features |\n|--------|----------|----------|\n| `bridge` | **Default** | Inter-container communication. Most common |\n| `host` | Same as host network | No port mapping needed. Performance-focused |\n| `none` | No networking | Fully isolated. Security-focused |\n\n### Compose Default Behavior\n- `docker compose up` auto-creates `projectname_default` network\n- Services in same Compose can access each other by **service name**\n\n---\n\n## Custom Networks\n\n### Why Use Them\n- **Security isolation**: Separate frontend and DB networks\n- **Multi-project**: Share services across different projects\n\n```\nservices:\n  web:\n    networks:\n      - frontend\n      - backend\n  db:\n    networks:\n      - backend  # Only accessible from web\n\nnetworks:\n  frontend:\n  backend:\n```',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: '現在の Docker ネットワーク一覧を確認しましょう', en: 'List current Docker networks' },
+                expectedCommand: 'docker network ls',
+                alternativeCommands: ['docker network list'],
+                output: `NETWORK ID     NAME              DRIVER    SCOPE
+a1b2c3d4e5f6   bridge            bridge    local
+f6e5d4c3b2a1   host              host      local
+1234567890ab   none              null      local
+abcdef123456   myapp_default     bridge    local`,
+                hint: { ja: 'docker network ls で全ネットワークを一覧表示', en: 'Use docker network ls to list all networks' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'カスタムネットワークを作成しましょう', en: 'Create a custom network' },
+                expectedCommand: 'docker network create mynet',
+                alternativeCommands: [],
+                output: `9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f`,
+                hint: { ja: 'docker network create <名前> でカスタムネットワークを作成', en: 'Use docker network create <name> to create a custom network' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'docker network コマンドでネットワークを作成・確認し、コンテナをカスタムネットワークに接続してみましょう。',
+                en: 'Create and inspect networks with docker network commands, then connect containers to custom networks.',
+            },
+            commands: ['docker network ls', 'docker network create mynet', 'docker network inspect mynet', 'docker network rm mynet'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'Docker Compose でサービス名でアクセスできる理由は？',
+                    en: 'Why can services access each other by service name in Docker Compose?',
+                },
+                options: [
+                    { ja: '/etc/hosts ファイルに手動で追記するから', en: 'Because /etc/hosts is manually edited' },
+                    { ja: 'Compose が自動でネットワークを作り、DNSを提供するから', en: 'Because Compose auto-creates a network with DNS' },
+                    { ja: 'すべてのコンテナは同じ IP を共有するから', en: 'Because all containers share the same IP' },
+                    { ja: 'ポートフォワーディングで転送するから', en: 'Because of port forwarding' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'Docker Compose は自動的に bridge ネットワークを作成し、内蔵の DNS でサービス名を IP アドレスに解決します。これにより db:5432 のようにサービス名でアクセスできます。',
+                    en: 'Docker Compose automatically creates a bridge network with built-in DNS that resolves service names to IP addresses. This enables access like db:5432.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 18
+    {
+        id: 18,
+        slug: 'image-registry',
+        level: 4,
+        icon: '📦',
+        title: { ja: 'イメージ管理と Docker Hub', en: 'Image Management & Docker Hub' },
+        intro: {
+            overview: {
+                ja: 'Docker イメージのタグ付け、Docker Hub への push/pull、イメージ命名規則を学びます。チームでイメージを共有する実践的なスキルを身につけます。',
+                en: 'Learn image tagging, push/pull to Docker Hub, and image naming conventions. Gain practical skills for sharing images with your team.',
+            },
+            why: {
+                ja: 'ローカルで作ったイメージをチームメンバーやCI/CD、本番サーバーと共有するには、レジストリが必要です。Docker Hub は最もポピュラーなレジストリで、パブリック・プライベート両方のリポジトリを提供します。',
+                en: 'Sharing locally built images with team members, CI/CD, and production servers requires a registry. Docker Hub is the most popular, offering both public and private repositories.',
+            },
+            before: { ja: 'イメージがローカルにしかない。他の人やサーバーと共有できない。', en: 'Images only exist locally. Cannot share with others or servers.' },
+            after: { ja: 'Docker Hub 経由でチームや本番環境とイメージを共有。', en: 'Share images via Docker Hub with team and production.' },
+        },
+        goals: [
+            { ja: 'イメージのタグ付けと命名規則を理解する', en: 'Understand image tagging and naming conventions' },
+            { ja: 'Docker Hub にイメージを push/pull できる', en: 'Push/pull images to/from Docker Hub' },
+            { ja: 'プライベートレジストリの概念を理解する', en: 'Understand private registry concepts' },
+        ],
+        concept: {
+            content: {
+                ja: '## イメージ命名規則\n\n### タグの構造\n```\n[レジストリ/] ユーザー名/リポジトリ名 :タグ\n```\n\n| 例 | 説明 |\n|-------|------|\n| `nginx:latest` | 公式イメージ（最新） |\n| `nginx:1.25-alpine` | 公式イメージ（バージョン指定） |\n| `myuser/myapp:v1.0` | ユーザーイメージ |\n| `ghcr.io/org/app:main` | GitHub Container Registry |\n\n### タグのベストプラクティス\n- `latest` は本番で使わない（どのバージョンか不明）\n- セマンティックバージョニング推奨: `v1.0.0`, `v1.0.1`\n- Git コミットハッシュも有用: `myapp:abc123f`\n\n---\n\n## Docker Hub 操作\n\n### 基本フロー\n- `docker login` : Docker Hub にログイン\n- `docker tag myapp myuser/myapp:v1.0` : タグ付け\n- `docker push myuser/myapp:v1.0` : アップロード\n- `docker pull myuser/myapp:v1.0` : ダウンロード',
+                en: '## Image Naming Conventions\n\n### Tag Structure\n```\n[registry/] username/repository :tag\n```\n\n| Example | Description |\n|---------|-------------|\n| `nginx:latest` | Official image (latest) |\n| `nginx:1.25-alpine` | Official image (version pinned) |\n| `myuser/myapp:v1.0` | User image |\n| `ghcr.io/org/app:main` | GitHub Container Registry |\n\n### Tagging Best Practices\n- Don\'t use `latest` in production (version unknown)\n- Semantic versioning recommended: `v1.0.0`, `v1.0.1`\n- Git commit hashes also useful: `myapp:abc123f`\n\n---\n\n## Docker Hub Operations\n\n### Basic Flow\n- `docker login` : Log in to Docker Hub\n- `docker tag myapp myuser/myapp:v1.0` : Tag image\n- `docker push myuser/myapp:v1.0` : Upload\n- `docker pull myuser/myapp:v1.0` : Download',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: 'ローカルイメージにタグを付けましょう', en: 'Tag a local image' },
+                expectedCommand: 'docker tag myapp myuser/myapp:v1.0',
+                alternativeCommands: ['docker image tag myapp myuser/myapp:v1.0'],
+                output: '(tagged successfully)',
+                hint: { ja: 'docker tag <元> <新しいタグ> でタグを追加', en: 'Use docker tag <source> <new-tag> to add a tag' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'タグ付けしたイメージを Docker Hub にプッシュしましょう', en: 'Push the tagged image to Docker Hub' },
+                expectedCommand: 'docker push myuser/myapp:v1.0',
+                alternativeCommands: [],
+                output: `The push refers to repository [docker.io/myuser/myapp]
+5f70bf18a086: Pushed
+v1.0: digest: sha256:abc123... size: 1234`,
+                hint: { ja: 'docker push <ユーザー名/リポジトリ:タグ> でプッシュ', en: 'Use docker push <user/repo:tag> to push' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'Docker Hub アカウントを作成し、docker login でログイン後、自作イメージにタグを付けて push してみましょう。',
+                en: 'Create a Docker Hub account, login with docker login, tag your image and push it.',
+            },
+            commands: ['docker login', 'docker tag myapp <your-user>/myapp:v1.0', 'docker push <your-user>/myapp:v1.0', 'docker pull <your-user>/myapp:v1.0'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: '本番環境でイメージタグ latest を使うべきでない理由は？',
+                    en: 'Why shouldn\'t you use the latest tag in production?',
+                },
+                options: [
+                    { ja: 'latest タグは使えないから', en: 'The latest tag cannot be used' },
+                    { ja: 'どのバージョンがデプロイされているか分からなくなるから', en: 'You lose track of which version is deployed' },
+                    { ja: 'latest は古いイメージだけを指すから', en: 'latest only refers to old images' },
+                    { ja: 'latest タグは有料だから', en: 'The latest tag requires payment' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'latest は「最新」を指しますが、具体的にどのバージョンかは不明確です。問題発生時のロールバックや原因調査が困難になるため、本番では v1.0.0 のような明示的なタグを使いましょう。',
+                    en: 'latest points to the newest version, but it\'s unclear which exact version. This makes rollback and debugging difficult. Use explicit tags like v1.0.0 in production.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 19
+    {
+        id: 19,
+        slug: 'security-basics',
+        level: 4,
+        icon: '🔒',
+        title: { ja: 'セキュリティの基本', en: 'Security Basics' },
+        intro: {
+            overview: {
+                ja: 'Docker のセキュリティリスクと対策の基本を学びます。root ユーザー問題、USER 命令、イメージスキャン、secrets 管理を実践します。',
+                en: 'Learn Docker security risks and basic countermeasures. Practice root user issues, USER instruction, image scanning, and secrets management.',
+            },
+            why: {
+                ja: 'デフォルトではコンテナは root ユーザーで動作します。これはセキュリティリスクです。また、ベースイメージに既知の脆弱性が含まれる場合もあります。開発者が最低限知るべきセキュリティ知識を身につけましょう。',
+                en: 'By default, containers run as root — a security risk. Base images may also contain known vulnerabilities. Learn the minimum security knowledge every developer needs.',
+            },
+            before: { ja: 'すべて root で実行。脆弱性を気にしない。秘密情報がDockerfileに。', en: 'Everything runs as root. Ignoring vulnerabilities. Secrets in Dockerfile.' },
+            after: { ja: '非root ユーザー、イメージスキャン、secrets管理で安全な運用。', en: 'Non-root user, image scanning, secrets management for secure operations.' },
+        },
+        goals: [
+            { ja: 'コンテナの root ユーザーリスクを理解する', en: 'Understand root user risks in containers' },
+            { ja: 'USER 命令で非root 実行を設定できる', en: 'Configure non-root execution with USER instruction' },
+            { ja: 'イメージスキャンで脆弱性を検出できる', en: 'Detect vulnerabilities with image scanning' },
+        ],
+        concept: {
+            content: {
+                ja: '## root ユーザー問題\n\nデフォルトではコンテナ内のプロセスは**root** で実行されます。\n\n### リスク\n- コンテナエスケープ時にホストの root 権限を取得される可能性\n- 不要な権限によるファイル操作のリスク\n\n### 対策: USER 命令\n```\nFROM node:18-alpine\nRUN addgroup -S appgroup && adduser -S appuser -G appgroup\nWORKDIR /app\nCOPY . .\nRUN npm install\nUSER appuser\nCMD ["node", "app.js"]\n```\n\n---\n\n## イメージスキャン\n\n```\ndocker scout quickview myapp:latest\ndocker scout cves myapp:latest\n```\n\n既知の脆弱性（CVE）をスキャンし、影響度を確認できます。\n\n---\n\n## Secrets 管理のルール\n\n| ❌ やってはいけない | ✅ やるべき |\n|------------------|-----------|\n| Dockerfile に直接パスワードを記述 | 環境変数 or Docker Secrets |\n| イメージにAPIキーを含める | .env ファイル（.gitignore済み） |\n| Git に秘密情報をコミット | CI/CD の Secret 変数機能 |',
+                en: '## Root User Problem\n\nBy default, processes inside containers run as **root**.\n\n### Risks\n- Container escape could grant host root access\n- Unnecessary privileges for file operations\n\n### Solution: USER Instruction\n```\nFROM node:18-alpine\nRUN addgroup -S appgroup && adduser -S appuser -G appgroup\nWORKDIR /app\nCOPY . .\nRUN npm install\nUSER appuser\nCMD ["node", "app.js"]\n```\n\n---\n\n## Image Scanning\n\n```\ndocker scout quickview myapp:latest\ndocker scout cves myapp:latest\n```\n\nScan for known vulnerabilities (CVEs) and check their severity.\n\n---\n\n## Secrets Management Rules\n\n| ❌ Don\'t | ✅ Do |\n|----------|------|\n| Write passwords in Dockerfile | Use env vars or Docker Secrets |\n| Include API keys in images | .env files (.gitignored) |\n| Commit secrets to Git | CI/CD Secret variables |',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: 'コンテナが root で動いているか確認しましょう', en: 'Check if container is running as root' },
+                expectedCommand: 'docker exec myapp-web-1 whoami',
+                alternativeCommands: ['docker exec myapp_web_1 whoami'],
+                output: 'root',
+                hint: { ja: 'whoami で現在のユーザーを確認', en: 'Use whoami to check current user' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'イメージの脆弱性をスキャンしましょう', en: 'Scan the image for vulnerabilities' },
+                expectedCommand: 'docker scout quickview myapp:latest',
+                alternativeCommands: ['docker scout cves myapp:latest'],
+                output: `    ✓ Image stored for indexing
+    ✓ Indexed 125 packages
+
+  Target     myapp:latest
+    digest   sha256:abc123...
+
+    Vulnerabilities
+    0C  2H  5M  12L
+    (0 critical, 2 high, 5 medium, 12 low)`,
+                hint: { ja: 'docker scout quickview でイメージの脆弱性概要を確認', en: 'Use docker scout quickview for vulnerability overview' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'Dockerfile に USER 命令を追加して非root ユーザーで実行するよう変更し、docker scout でイメージスキャンを実行してみましょう。',
+                en: 'Add USER instruction to Dockerfile for non-root execution, then run docker scout to scan your image.',
+            },
+            commands: ['docker exec <container> whoami', 'docker scout quickview <image>', 'docker scout cves <image>'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'Dockerfile で非root ユーザーを設定するための命令は？',
+                    en: 'Which Dockerfile instruction sets a non-root user?',
+                },
+                options: [
+                    { ja: 'RUN', en: 'RUN' },
+                    { ja: 'CMD', en: 'CMD' },
+                    { ja: 'USER', en: 'USER' },
+                    { ja: 'ENV', en: 'ENV' },
+                ],
+                correctIndex: 2,
+                explanation: {
+                    ja: 'USER 命令でコンテナ実行時のユーザーを指定します。事前に RUN adduser でユーザーを作成し、USER <ユーザー名> で切り替えるのがベストプラクティスです。',
+                    en: 'The USER instruction specifies the runtime user. Best practice is to create a user with RUN adduser, then switch with USER <username>.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // ─────────────────────────────────────────────
+    // Level 5: CI/CD・チーム開発
+    // ─────────────────────────────────────────────
+
+    // Chapter 20
+    {
+        id: 20,
+        slug: 'cicd-docker',
+        level: 5,
+        icon: '⚡',
+        title: { ja: 'CI/CD と Docker', en: 'CI/CD & Docker' },
+        intro: {
+            overview: {
+                ja: 'GitHub Actions を使って Docker の build → test → push を自動化する CI/CD パイプラインを学びます。',
+                en: 'Learn CI/CD pipelines that automate Docker build → test → push using GitHub Actions.',
+            },
+            why: {
+                ja: '手動で docker build して push するのは、チーム開発ではミスや漏れの原因になります。CI/CD で「コードを push したら自動でイメージがビルド・テスト・デプロイされる」仕組みを作ることで、品質と効率を同時に向上できます。',
+                en: 'Manual docker build and push in team development leads to mistakes. CI/CD automates "push code → auto build, test, deploy" workflows, improving both quality and efficiency.',
+            },
+            before: { ja: '手動でビルド・テスト・デプロイ。ミスや手順の属人化。', en: 'Manual build, test, deploy. Mistakes and process knowledge silos.' },
+            after: { ja: 'Git push するだけで自動的にビルド・テスト・デプロイ。', en: 'Just git push — automatic build, test, and deploy.' },
+        },
+        goals: [
+            { ja: 'CI/CD の基本概念を理解する', en: 'Understand basic CI/CD concepts' },
+            { ja: 'GitHub Actions でDockerビルドを自動化できる', en: 'Automate Docker builds with GitHub Actions' },
+            { ja: 'CI/CD パイプラインを設計できる', en: 'Design CI/CD pipelines' },
+        ],
+        concept: {
+            content: {
+                ja: '## CI/CD とは\n\n| 用語 | 意味 | 具体例 |\n|------|------|--------|\n| **CI** (継続的インテグレーション) | コード変更を自動でビルド・テスト | push → 自動テスト |\n| **CD** (継続的デリバリー) | テスト通過後、自動でデプロイ準備 | テスト通過 → イメージ push |\n\n---\n\n## GitHub Actions の例\n\n```\n# .github/workflows/docker.yml\nname: Docker CI\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Build image\n        run: docker build -t myapp .\n      - name: Run tests\n        run: docker run myapp npm test\n      - name: Push to Docker Hub\n        run: |\n          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin\n          docker tag myapp ${{ secrets.DOCKER_USER }}/myapp:${{ github.sha }}\n          docker push ${{ secrets.DOCKER_USER }}/myapp:${{ github.sha }}\n```\n\n### ポイント\n- **secrets** でパスワードを安全に管理\n- **github.sha** でコミットハッシュをタグに使用\n- push するたびに自動実行',
+                en: '## What is CI/CD\n\n| Term | Meaning | Example |\n|------|---------|---------|\n| **CI** (Continuous Integration) | Auto build & test on code change | push → auto test |\n| **CD** (Continuous Delivery) | Auto deploy prep after tests pass | tests pass → image push |\n\n---\n\n## GitHub Actions Example\n\n```\n# .github/workflows/docker.yml\nname: Docker CI\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Build image\n        run: docker build -t myapp .\n      - name: Run tests\n        run: docker run myapp npm test\n      - name: Push to Docker Hub\n        run: |\n          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin\n          docker tag myapp ${{ secrets.DOCKER_USER }}/myapp:${{ github.sha }}\n          docker push ${{ secrets.DOCKER_USER }}/myapp:${{ github.sha }}\n```\n\n### Key Points\n- **secrets** for secure password management\n- **github.sha** for commit hash tags\n- Auto-runs on every push',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: 'Docker イメージをビルドしましょう（CI の第一歩）', en: 'Build a Docker image (first CI step)' },
+                expectedCommand: 'docker build -t myapp .',
+                alternativeCommands: ['docker build -t myapp:latest .'],
+                output: `[+] Building 8.5s (7/7) FINISHED
+ => [1/4] FROM node:18-alpine
+ => [2/4] WORKDIR /app
+ => [3/4] COPY . .
+ => [4/4] RUN npm install
+ => exporting to image
+ => => naming to docker.io/library/myapp:latest`,
+                hint: { ja: 'docker build -t <名前> . でイメージをビルド', en: 'Use docker build -t <name> . to build' },
+                xp: 20,
+            },
+            {
+                prompt: { ja: 'ビルドしたイメージでテストを実行しましょう', en: 'Run tests in the built image' },
+                expectedCommand: 'docker run myapp npm test',
+                alternativeCommands: ['docker run --rm myapp npm test'],
+                output: `> myapp@1.0.0 test
+> jest
+
+PASS  tests/app.test.js
+  ✓ responds with hello (12ms)
+
+Tests: 1 passed, 1 total`,
+                hint: { ja: 'docker run <イメージ> <コマンド> でテストを実行', en: 'Use docker run <image> <command> to run tests' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'GitHub リポジトリに .github/workflows/docker.yml を作成し、push 時に自動でDockerビルドが実行されることを確認しましょう。',
+                en: 'Create .github/workflows/docker.yml in your repo and verify that Docker builds run automatically on push.',
+            },
+            commands: ['docker build -t myapp .', 'docker run myapp npm test', 'docker tag myapp user/myapp:v1.0', 'docker push user/myapp:v1.0'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'CI/CD パイプラインで秘密情報（パスワード）を安全に扱う方法は？',
+                    en: 'How do you securely handle secrets (passwords) in CI/CD pipelines?',
+                },
+                options: [
+                    { ja: 'ワークフローファイルに直接書く', en: 'Write directly in workflow file' },
+                    { ja: 'README に書いておく', en: 'Write in README' },
+                    { ja: 'GitHub Secrets に登録し ${{ secrets.XXX }} で参照する', en: 'Register in GitHub Secrets and reference with ${{ secrets.XXX }}' },
+                    { ja: 'コメントアウトして隠す', en: 'Hide by commenting out' },
+                ],
+                correctIndex: 2,
+                explanation: {
+                    ja: 'GitHub Secrets（リポジトリ設定 → Secrets）に登録した値は暗号化され、ワークフロー内で ${{ secrets.XXX }} として安全に参照できます。ログにも出力されません。',
+                    en: 'Values registered in GitHub Secrets (repo settings → Secrets) are encrypted and safely referenced as ${{ secrets.XXX }} in workflows. They are not printed in logs.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 21
+    {
+        id: 21,
+        slug: 'deploy-strategy',
+        level: 5,
+        icon: '🚀',
+        title: { ja: '本番デプロイ戦略', en: 'Production Deploy Strategies' },
+        intro: {
+            overview: {
+                ja: 'Docker コンテナを本番環境にデプロイするための主要なクラウドサービスと戦略を学びます。',
+                en: 'Learn major cloud services and strategies for deploying Docker containers to production.',
+            },
+            why: {
+                ja: 'ローカルで動くアプリを本番で公開するには、ホスティング基盤の選択が必要です。コンテナ対応のクラウドサービスを理解し、プロジェクトに適した選択ができるようになりましょう。',
+                en: 'Publishing a locally running app to production requires choosing a hosting platform. Understand container-compatible cloud services to make the right choice for your project.',
+            },
+            before: { ja: 'ローカルでしか動かない。デプロイ方法が分からない。', en: 'Only runs locally. Don\'t know how to deploy.' },
+            after: { ja: 'クラウドサービスの選択肢を理解し、適切な戦略を選べる。', en: 'Understand cloud options and choose the right strategy.' },
+        },
+        goals: [
+            { ja: '主要なコンテナホスティングサービスを理解する', en: 'Understand major container hosting services' },
+            { ja: 'Compose を本番で使う場合の注意点を理解する', en: 'Understand caveats of using Compose in production' },
+            { ja: 'デプロイ戦略の選択基準を理解する', en: 'Understand criteria for choosing deploy strategies' },
+        ],
+        concept: {
+            content: {
+                ja: '## コンテナホスティングの選択肢\n\n| サービス | プロバイダー | 特徴 |\n|---------|------------|------|\n| **ECS / Fargate** | AWS | フルマネージド、大規模向け |\n| **Container Apps** | Azure | サーバーレスコンテナ、簡単 |\n| **Cloud Run** | GCP | リクエスト駆動、従量課金 |\n| **Fly.io** | 独立系 | Dockerfile から直接デプロイ |\n| **Railway** | 独立系 | Git push でデプロイ、初心者向け |\n\n---\n\n## 本番での Docker Compose\n\n### 開発 vs 本番\n\n| 項目 | 開発 | 本番 |\n|------|------|------|\n| ビルド | 毎回ビルド | 事前ビルド済みイメージ |\n| ボリューム | bind mount | named volume |\n| ポート | ホスト直接公開 | リバースプロキシ経由 |\n| ログ | コンソール出力 | ログ集約サービス |\n| 再起動 | 手動 | `restart: always` |\n\n### 本番用 compose.prod.yml のポイント\n```\nservices:\n  web:\n    image: myuser/myapp:v1.0  # ビルド済みイメージ\n    restart: always\n    logging:\n      driver: json-file\n      options:\n        max-size: "10m"\n        max-file: "3"\n```',
+                en: '## Container Hosting Options\n\n| Service | Provider | Features |\n|---------|----------|----------|\n| **ECS / Fargate** | AWS | Fully managed, large scale |\n| **Container Apps** | Azure | Serverless containers, simple |\n| **Cloud Run** | GCP | Request-driven, pay-per-use |\n| **Fly.io** | Independent | Deploy from Dockerfile directly |\n| **Railway** | Independent | Git push deploy, beginner-friendly |\n\n---\n\n## Docker Compose in Production\n\n### Dev vs Production\n\n| Aspect | Development | Production |\n|--------|-------------|------------|\n| Build | Build each time | Pre-built images |\n| Volumes | bind mount | named volume |\n| Ports | Direct host | Via reverse proxy |\n| Logs | Console output | Log aggregation |\n| Restart | Manual | `restart: always` |\n\n### Production compose.prod.yml Tips\n```\nservices:\n  web:\n    image: myuser/myapp:v1.0  # Pre-built image\n    restart: always\n    logging:\n      driver: json-file\n      options:\n        max-size: "10m"\n        max-file: "3"\n```',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: '本番用の設定でサービスを起動しましょう', en: 'Start services with production config' },
+                expectedCommand: 'docker compose -f compose.yml -f compose.prod.yml up -d',
+                alternativeCommands: ['docker-compose -f compose.yml -f compose.prod.yml up -d'],
+                output: `[+] Running 3/3
+ ✔ Network myapp_default    Created
+ ✔ Container myapp-db-1     Started
+ ✔ Container myapp-web-1    Started
+(Production mode: pre-built image, restart: always)`,
+                hint: { ja: '-f で本番用ファイルを指定', en: 'Use -f to specify production config files' },
+                xp: 20,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'compose.prod.yml を作成し、開発用と本番用の設定の違いを確認しましょう。docker compose config で最終的なマージ結果を確認できます。',
+                en: 'Create compose.prod.yml and compare dev vs production configs. Use docker compose config to see the final merged result.',
+            },
+            commands: ['docker compose -f compose.yml -f compose.prod.yml config', 'docker compose -f compose.yml -f compose.prod.yml up -d'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: '本番環境の docker-compose.yml で restart: always を設定する理由は？',
+                    en: 'Why set restart: always in production docker-compose.yml?',
+                },
+                options: [
+                    { ja: 'ビルドを高速化するため', en: 'To speed up builds' },
+                    { ja: 'コンテナが異常終了しても自動で再起動するため', en: 'To auto-restart containers after abnormal exit' },
+                    { ja: 'ログを自動的に削除するため', en: 'To automatically delete logs' },
+                    { ja: 'ネットワークを再設定するため', en: 'To reconfigure networking' },
+                ],
+                correctIndex: 1,
+                explanation: {
+                    ja: 'restart: always により、コンテナが異常終了やホスト再起動後に自動的に再起動します。本番環境でサービスの可用性を確保するための基本設定です。',
+                    en: 'restart: always automatically restarts containers after crashes or host reboots. It\'s a fundamental setting for ensuring service availability in production.',
+                },
+            },
+        ],
+        completionXP: 100,
+    },
+
+    // Chapter 22
+    {
+        id: 22,
+        slug: 'docker-mastery',
+        level: 5,
+        icon: '🏆',
+        title: { ja: 'Docker 総まとめ', en: 'Docker Mastery' },
+        intro: {
+            overview: {
+                ja: '全Levelで学んだ知識を統合する総合チャレンジです。Dockerfile設計 → Compose構成 → CI/CD設定の一連のフローを完遂します。',
+                en: 'A comprehensive challenge integrating all Level knowledge. Complete the full flow: Dockerfile design → Compose setup → CI/CD configuration.',
+            },
+            why: {
+                ja: 'ここまでの全知識を一つのプロジェクトで実践することで、Docker の全体像と実務での活用方法を確実に身につけます。これが Docker マスターへの最終ステップです。',
+                en: 'Practicing all knowledge in one project solidifies your understanding of Docker\'s full picture and practical usage. This is the final step to Docker mastery.',
+            },
+            before: { ja: '個別の知識はあるが、全体を通したフローに不安がある。', en: 'Individual knowledge exists, but uncertain about the end-to-end flow.' },
+            after: { ja: 'Dockerfile → Compose → CI/CD の全フローを自信を持って実践できる。', en: 'Confidently practice the full Dockerfile → Compose → CI/CD flow.' },
+        },
+        goals: [
+            { ja: '全Levelの知識を統合したプロジェクトを構築できる', en: 'Build a project integrating all Level knowledge' },
+            { ja: 'Docker の全体像を説明できる', en: 'Explain the full Docker picture' },
+            { ja: '実務でDockerを活用する自信を持てる', en: 'Gain confidence to use Docker in practice' },
+        ],
+        concept: {
+            content: {
+                ja: '## Docker 全体フロー\n\n### 学んだこと一覧\n\n| Level | 主要スキル |\n|-------|----------|\n| **Lv.1** Docker 基礎 | コンテナの起動・停止・操作・ポート・ボリューム |\n| **Lv.2** Dockerfile | イメージ構築・レイヤー・マルチステージ |\n| **Lv.3** Compose | マルチサービス・環境変数・ヘルスチェック・開発ワークフロー |\n| **Lv.4** 実践・運用 | デバッグ・ネットワーク・Docker Hub・セキュリティ |\n| **Lv.5** CI/CD | 自動ビルド・テスト・デプロイ |\n\n---\n\n## 総合チャレンジ\n\n以下の要件を満たすプロジェクトを構築してみよう：\n\n- Dockerfile を書く（マルチステージ、非root ユーザー）\n- docker-compose.yml で3サービス構成（Web + DB + Cache）\n- healthcheck を定義\n- .env で設定を外部化\n- compose.override.yml で開発/本番を分離\n- Docker Hub にイメージを push\n- GitHub Actions で CI/CD を自動化',
+                en: '## Docker Full Flow\n\n### Skills Summary\n\n| Level | Key Skills |\n|-------|-----------|\n| **Lv.1** Docker Basics | Container start/stop/manage/port/volume |\n| **Lv.2** Dockerfile | Image building, layers, multi-stage |\n| **Lv.3** Compose | Multi-service, env vars, healthcheck, dev workflow |\n| **Lv.4** Practice & Ops | Debug, networking, Docker Hub, security |\n| **Lv.5** CI/CD | Auto build, test, deploy |\n\n---\n\n## Final Challenge\n\nBuild a project meeting these requirements:\n\n- Write a Dockerfile (multi-stage, non-root user)\n- docker-compose.yml with 3 services (Web + DB + Cache)\n- Define healthchecks\n- Externalize config with .env\n- Separate dev/prod with compose.override.yml\n- Push images to Docker Hub\n- Automate CI/CD with GitHub Actions',
+            },
+        },
+        simulation: [
+            {
+                prompt: { ja: '最終プロジェクト：イメージをマルチステージビルドしましょう', en: 'Final project: Build with multi-stage' },
+                expectedCommand: 'docker build -t myproject .',
+                alternativeCommands: ['docker build -t myproject:latest .'],
+                output: `[+] Building 15.2s (12/12) FINISHED
+ => [build 1/4] FROM node:18-alpine AS build
+ => [build 2/4] COPY package.json .
+ => [build 3/4] RUN npm install
+ => [build 4/4] COPY . .
+ => [prod 1/3] FROM node:18-alpine
+ => [prod 2/3] COPY --from=build /app/dist ./dist
+ => [prod 3/3] COPY --from=build /app/node_modules ./node_modules
+ => exporting to image
+ => => naming to docker.io/library/myproject:latest
+
+Final image size: 95MB (vs 450MB without multi-stage)`,
+                hint: { ja: 'docker build -t myproject . でマルチステージビルドを実行', en: 'Use docker build -t myproject . for multi-stage build' },
+                xp: 30,
+            },
+            {
+                prompt: { ja: '3サービス構成を起動して動作確認しましょう', en: 'Start and verify the 3-service stack' },
+                expectedCommand: 'docker compose up -d',
+                alternativeCommands: ['docker-compose up -d'],
+                output: `[+] Running 4/4
+ ✔ Network myproject_default    Created
+ ✔ Container myproject-cache-1  Started
+ ✔ Container myproject-db-1     Started (healthy)
+ ✔ Container myproject-web-1    Started
+
+🎉 All services running! Visit http://localhost:3000`,
+                hint: { ja: 'docker compose up -d で全サービスをバックグラウンド起動', en: 'Use docker compose up -d to start all services' },
+                xp: 30,
+            },
+        ],
+        localPractice: {
+            instructions: {
+                ja: 'これまで学んだ全ての知識を使って、Dockerfile + docker-compose.yml + CI/CD をゼロから構築してみましょう。これができれば Docker マスターです！🐳',
+                en: 'Using everything you\'ve learned, build Dockerfile + docker-compose.yml + CI/CD from scratch. If you can do this, you\'re a Docker master! 🐳',
+            },
+            commands: ['docker build -t myproject .', 'docker compose up -d', 'docker compose ps', 'docker push user/myproject:v1.0'],
+        },
+        checkpoint: [
+            {
+                question: {
+                    ja: 'Docker を使った開発フローの正しい順番は？',
+                    en: 'What is the correct Docker development flow?',
+                },
+                options: [
+                    { ja: 'CI/CD → Dockerfile → Compose', en: 'CI/CD → Dockerfile → Compose' },
+                    { ja: 'Compose → Dockerfile → push', en: 'Compose → Dockerfile → push' },
+                    { ja: 'Dockerfile → build → Compose → CI/CD', en: 'Dockerfile → build → Compose → CI/CD' },
+                    { ja: 'push → Compose → Dockerfile', en: 'push → Compose → Dockerfile' },
+                ],
+                correctIndex: 2,
+                explanation: {
+                    ja: '基本的な流れは：1) Dockerfile を書いてイメージを定義 → 2) docker build でイメージをビルド → 3) Compose でマルチサービス構成 → 4) CI/CD で自動化。この順番で段階的に構築していきます。',
+                    en: 'The basic flow: 1) Write Dockerfile to define image → 2) docker build → 3) Compose for multi-service setup → 4) CI/CD for automation. Build step by step in this order.',
+                },
+            },
+        ],
+        completionXP: 200,
+    },
 ];
 
 export function getChapter(id: number): ChapterData | undefined {
@@ -1180,4 +2056,9 @@ export function getChaptersByLevel(level: number): ChapterData[] {
 
 export function getAllChapterIds(): number[] {
     return chapters.map(c => c.id);
+}
+
+export function getChapterNumberInLevel(chapter: ChapterData): number {
+    const chaptersInLevel = chapters.filter(c => c.level === chapter.level);
+    return chaptersInLevel.findIndex(c => c.id === chapter.id) + 1;
 }

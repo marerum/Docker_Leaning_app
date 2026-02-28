@@ -40,13 +40,15 @@ gantt
 
 ---
 
-## Phase 1: MVP（現行計画）
+## Phase 1: MVP（現行計画） ✅ 実装済み
 
 > 詳細は [specification.md](./specification.md) を参照
 
-- Next.js 15 + LocalStorage + シミュレーションターミナル
-- Docker基礎〜Compose+環境変数（12章）
-- XP・レベル・バッジ / 日英切替
+- ✅ Next.js 15 + LocalStorage + シミュレーションターミナル
+- ✅ Docker基礎〜CI/CD・チーム開発（全5レベル・22章）
+- ✅ XP・レベルシステム / 日英切替 / Win/Mac切替
+- ✅ Dockerエコシステム図・カスタムMarkdownレンダラー
+- ⬜ Lv.4-5 コンテンツ品質向上（工事中）
 
 ---
 

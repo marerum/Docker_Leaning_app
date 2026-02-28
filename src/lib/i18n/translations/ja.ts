@@ -148,8 +148,16 @@ const ja = {
       description: '自分だけのイメージを作ろう',
     },
     level3: {
-      title: 'Docker Compose 入門',
+      title: 'Docker Compose',
       description: '複数サービスを指揮しよう',
+    },
+    level4: {
+      title: '実践・運用スキル',
+      description: 'デバッグ・セキュリティ・Docker Hub',
+    },
+    level5: {
+      title: 'CI/CD・チーム開発',
+      description: '自動化と本番デプロイ',
     },
   },
 };

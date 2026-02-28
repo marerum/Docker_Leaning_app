@@ -137,8 +137,16 @@ const en = {
             description: 'Build your own images',
         },
         level3: {
-            title: 'Docker Compose Intro',
+            title: 'Docker Compose',
             description: 'Orchestrate multiple services',
+        },
+        level4: {
+            title: 'Practice & Operations',
+            description: 'Debug, security & Docker Hub',
+        },
+        level5: {
+            title: 'CI/CD & Team Dev',
+            description: 'Automation & production deploy',
         },
     },
 };

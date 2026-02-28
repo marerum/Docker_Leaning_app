@@ -10,21 +10,51 @@ import styles from './guide.module.css';
 
 // Simple markdown-like renderer (basic subset)
 function renderMarkdown(text: string): string {
-    return text
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;" />')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/^- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-        .replace(/\n\n/g, '<br/><br/>')
-        .replace(/\|(.+)\|/g, (match) => {
-            const cells = match.split('|').filter(Boolean).map(c => c.trim());
-            return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
-        })
-        .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
-        .replace(/```\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    // 1. Extract code blocks FIRST (before inline code replaces triple backticks)
+    const codeBlocks: string[] = [];
+    let processed = text.replace(/```\n?([\s\S]*?)```/g, (_match, code) => {
+        codeBlocks.push(code);
+        return `%%CODEBLOCK_${codeBlocks.length - 1}%%`;
+    });
+
+    // 2. Headings
+    processed = processed.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    processed = processed.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+
+    // 3. Images
+    processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;" />');
+
+    // 4. Horizontal rule
+    processed = processed.replace(/^---$/gm, '<hr/>');
+
+    // 5. Inline code (single backtick — safe now that triple backticks are extracted)
+    processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // 6. Bold
+    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    // 7. Tables — filter separator rows, then convert data rows
+    processed = processed.replace(/\|(.+)\|/g, (match) => {
+        // Skip separator rows like |------|------|
+        const cells = match.split('|').filter(Boolean);
+        if (cells.every(c => /^[\s\-:]+$/.test(c))) return '';
+        return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+    });
+    processed = processed.replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>');
+
+    // 8. Lists
+    processed = processed.replace(/^- (.+)$/gm, '<li>$1</li>');
+    processed = processed.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+    // 9. Paragraph breaks
+    processed = processed.replace(/\n\n/g, '<br/><br/>');
+
+    // 10. Restore code blocks
+    processed = processed.replace(/%%CODEBLOCK_(\d+)%%/g, (_m, idx) => {
+        return '<pre><code>' + codeBlocks[Number(idx)] + '</code></pre>';
+    });
+
+    return processed;
 }
 
 export default function GuidePage() {
@@ -63,7 +93,7 @@ export default function GuidePage() {
 // ─── Chapter Header ──────────────────
 function ChapterHeader({ chapter, locale }: { chapter: ChapterData; locale: Locale }) {
     const prevId = chapter.id > 1 ? chapter.id - 1 : null;
-    const nextId = chapter.id < 12 ? chapter.id + 1 : null;
+    const nextId = chapter.id < 22 ? chapter.id + 1 : null;
 
     return (
         <div className={styles.chapterHeader}>

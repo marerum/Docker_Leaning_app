@@ -27,6 +27,22 @@ const COURSES = [
     levelClass: 'levelIntermediate',
     levelLabel: { ja: '中級', en: 'Intermediate' },
     href: '/guide/10',
+    chapters: 6,
+  },
+  {
+    id: 'level4',
+    icon: '⚙️',
+    levelClass: 'levelIntermediate',
+    levelLabel: { ja: '中〜上級', en: 'Intermediate-Advanced' },
+    href: '/guide/16',
+    chapters: 4,
+  },
+  {
+    id: 'level5',
+    icon: '🚀',
+    levelClass: 'levelAdvanced',
+    levelLabel: { ja: '上級', en: 'Advanced' },
+    href: '/guide/20',
     chapters: 3,
   },
 ] as const;
