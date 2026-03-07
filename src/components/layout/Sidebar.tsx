@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import { chapters } from '@/lib/content/chapters';
 import styles from './Sidebar.module.css';
@@ -19,6 +19,8 @@ const LEVEL_LABELS = {
 export default function Sidebar({ streak }: SidebarProps) {
     const { t, locale } = useI18n();
     const pathname = usePathname();
+    const router = useRouter();
+    const [dictSearch, setDictSearch] = useState('');
 
     // Determine which section is active
     const isGuideActive = pathname === '/guide' || pathname?.startsWith('/guide/');
@@ -123,6 +125,30 @@ export default function Sidebar({ streak }: SidebarProps) {
                         <span className={styles.navIcon}>📚</span>
                         <span className={styles.navLabel}>{t.nav.dictionary}</span>
                     </Link>
+                    <div style={{ padding: '0 var(--space-4) var(--space-2)' }}>
+                        <input
+                            type="text"
+                            value={dictSearch}
+                            onChange={(e) => setDictSearch(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && dictSearch.trim()) {
+                                    router.push(`/dictionary?q=${encodeURIComponent(dictSearch.trim())}`);
+                                }
+                            }}
+                            placeholder={locale === 'ja' ? '🔍 用語を検索...' : '🔍 Search...'}
+                            style={{
+                                width: '100%',
+                                padding: '5px 10px',
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                color: 'var(--color-text-primary)',
+                                fontFamily: 'var(--font-sans)',
+                                fontSize: '0.75rem',
+                                outline: 'none',
+                            }}
+                        />
+                    </div>
                 </div>
 
                 {/* ─── チャレンジ ─── */}
