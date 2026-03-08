@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import { chapters } from '@/lib/content/chapters';
+import { practiceExercises, WIP_EXERCISES, PRACTICE_LEVEL_LABELS } from '@/lib/content/practices';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -24,7 +25,7 @@ export default function Sidebar({ streak }: SidebarProps) {
 
     // Determine which section is active
     const isGuideActive = pathname === '/guide' || pathname?.startsWith('/guide/');
-    const isPracticeActive = pathname === '/practice';
+    const isPracticeActive = pathname === '/practice' || pathname?.startsWith('/practice/');
     const isDictionaryActive = pathname === '/dictionary';
     const isChallengeActive = pathname === '/challenge';
     const isProgressActive = pathname === '/progress';
@@ -32,11 +33,16 @@ export default function Sidebar({ streak }: SidebarProps) {
     // Track which nav sections are expanded (auto-expand active section)
     const [expanded, setExpanded] = useState<Record<string, boolean>>({
         guide: isGuideActive,
+        practice: isPracticeActive,
     });
 
     useEffect(() => {
         if (isGuideActive) setExpanded(prev => ({ ...prev, guide: true }));
     }, [isGuideActive]);
+
+    useEffect(() => {
+        if (isPracticeActive) setExpanded(prev => ({ ...prev, practice: true }));
+    }, [isPracticeActive]);
 
     const toggleSection = (key: string) => {
         setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
@@ -46,11 +52,22 @@ export default function Sidebar({ streak }: SidebarProps) {
         ? Number(pathname.split('/').pop())
         : null;
 
+    const currentExerciseId = pathname?.startsWith('/practice/')
+        ? pathname.split('/').pop()
+        : null;
+
     // Group chapters by level
     const chaptersByLevel = [1, 2, 3, 4, 5].map(level => ({
         level,
         label: LEVEL_LABELS[locale][level - 1],
         chapters: chapters.filter(c => c.level === level),
+    }));
+
+    // Group practice exercises by level
+    const practiceByLevel = [0, 1].map(level => ({
+        level,
+        label: PRACTICE_LEVEL_LABELS.implemented[level][locale],
+        exercises: practiceExercises.filter(e => e.level === level),
     }));
 
     return (
@@ -105,15 +122,62 @@ export default function Sidebar({ streak }: SidebarProps) {
                     )}
                 </div>
 
-                {/* ─── 演習 ─── */}
+                {/* ─── 演習 (collapsible) ─── */}
                 <div className={styles.navSection}>
-                    <Link
-                        href="/practice"
+                    <button
                         className={`${styles.navItem} ${isPracticeActive ? styles.navItemActive : ''}`}
+                        onClick={() => toggleSection('practice')}
                     >
                         <span className={styles.navIcon}>💻</span>
                         <span className={styles.navLabel}>{t.nav.practice}</span>
-                    </Link>
+                        <span className={`${styles.chevron} ${expanded.practice ? styles.chevronOpen : ''}`}>▸</span>
+                    </button>
+
+                    {expanded.practice && (
+                        <div className={styles.subNav}>
+                            <Link
+                                href="/practice"
+                                className={`${styles.subNavTop} ${pathname === '/practice' ? styles.subNavTopActive : ''}`}
+                            >
+                                {locale === 'ja' ? '📑 演習一覧' : '📑 Exercise List'}
+                            </Link>
+                            {practiceByLevel.map(({ level, label, exercises }) => (
+                                <div key={level} className={styles.levelGroup}>
+                                    <div className={styles.levelLabel}>
+                                        <span className={styles.levelBadge}>Lv.{level}</span>
+                                        <span>{label}</span>
+                                    </div>
+                                    {exercises.map((ex) => {
+                                        const isCurrent = currentExerciseId === ex.id;
+                                        return (
+                                            <Link
+                                                key={ex.id}
+                                                href={`/practice/${ex.id}`}
+                                                className={`${styles.chapterItem} ${isCurrent ? styles.chapterItemActive : ''}`}
+                                            >
+                                                <span className={styles.chapterIcon}>{ex.icon}</span>
+                                                <span className={styles.chapterName}>{ex.title[locale]}</span>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                            {/* WIP levels */}
+                            {WIP_EXERCISES.map(wl => (
+                                <div key={wl.levelLabel} className={styles.levelGroup}>
+                                    <div className={styles.levelLabel}>
+                                        <span className={styles.levelBadge} style={{ opacity: 0.5 }}>{wl.levelLabel}</span>
+                                        <span style={{ opacity: 0.5 }}>
+                                            {PRACTICE_LEVEL_LABELS.wip[WIP_EXERCISES.indexOf(wl)][locale]}
+                                        </span>
+                                        <span style={{ fontSize: '0.65rem', color: '#f0a040', marginLeft: '4px' }}>
+                                            {locale === 'ja' ? '（工事中）' : '(WIP)'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* ─── 辞書 ─── */}
