@@ -85,14 +85,13 @@ Vercel ダッシュボードで **「Add New... → Project」** をクリック
 | 設定項目 | 値 | 備考 |
 |---------|-----|------|
 | **Framework Preset** | `Next.js` | 自動検出される |
-| **Root Directory** | `docker-quest` | リポジトリのルートではなくサブフォルダ |
+| **Root Directory** | `/`（デフォルト） | GitHubリポジトリのルートが `docker-quest` の内容のため変更不要 |
 | **Build Command** | `npm run build` | デフォルトのまま |
 | **Output Directory** | `.next` | デフォルトのまま |
 | **Install Command** | `npm install` | デフォルトのまま |
 
-> [!IMPORTANT]
-> **Root Directory を `docker-quest` に変更することが必須**。
-> このリポジトリは `01_Docker_Lerning_PJ/docker-quest/` にアプリがあるため、Root Directory をサブディレクトリに設定しないとビルドが失敗する。
+> [!NOTE]
+> GitHubリポジトリのルートがすでに `docker-quest` の内容（`src/`, `package.json` 等）になっているため、Root Directory はデフォルト（`/`）のままでよい。
 
 ### Step 4: 環境変数
 
@@ -191,7 +190,7 @@ Pull Request を作成すると、Vercel が自動的にプレビュー用URLを
 
 | 症状 | 原因 | 対処 |
 |------|------|------|
-| ビルドエラー | Root Directory が未設定 | Settings → General → Root Directory を `docker-quest` に変更 |
+| ビルドエラー | `package.json` が見つからない | GitHubにリポジトリのルートから正しくpushされているか確認 |
 | 404エラー | 動的ルート（`/guide/[id]`）が機能しない | Next.js の設定を確認（通常は自動解決） |
 | LocalStorageが空 | ブラウザのシークレットモード | 通常モードで確認 |
 | セキュリティヘッダーがない | `next.config.ts` の設定ミス | `headers()` の設定を確認 |
