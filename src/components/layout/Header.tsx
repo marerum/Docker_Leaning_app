@@ -15,6 +15,7 @@ export default function Header({ level }: HeaderProps) {
             <div className={styles.logo}>
                 <span className={styles.logoIcon}>🐳</span>
                 <span className={styles.logoText}>{t.common.appName}</span>
+                <span className={styles.betaBadge}>β</span>
             </div>
 
             <div className={styles.controls}>

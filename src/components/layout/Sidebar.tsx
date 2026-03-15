@@ -245,6 +245,9 @@ export default function Sidebar({ streak }: SidebarProps) {
                         <span>{streak}{t.progress.days}</span>
                     </div>
                 )}
+                <Link href="/disclaimer" className={styles.privacyLink}>
+                    {locale === 'ja' ? '⚠️ 免責事項（β版）' : '⚠️ Disclaimer (β)'}
+                </Link>
                 <Link href="/privacy" className={styles.privacyLink}>
                     {locale === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy'}
                 </Link>
