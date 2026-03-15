@@ -341,6 +341,9 @@ interface UserProgressStore {
 // Phase 3: PremiumStore extends ApiStore → プラン判定付きアクセス
 ```
 
+> [!NOTE]
+> **schemaVersion の追加（チームレビュー 2026-03-15 決定）**: `UserProfile` には `schemaVersion: number` フィールドを追加することを推奨。LocalStorage → DB移行時にスキーマ変更を安全にハンドリングするためのマイグレーション基盤として機能する。
+
 > [!TIP]
 > `UserProgressStore` インターフェースを通じてデータアクセスを行うことで、MVP(LocalStorage) → Phase2(API + DB) → Phase3(課金連携)への移行を**コンポーネント側のコード変更なし**で実現可能。
 
@@ -408,6 +411,8 @@ interface UserProgressStore {
 - ✅ 日本語/英語切替
 - ✅ Windows/Mac OS切替（ガイドテキスト・パス表記の出し分け）
 - ✅ コマンド辞書（基本〜Composeコマンド）
+- ⬜ **進捗ダッシュボード（画面・機能の完成）** ← チームレビュー（2026-03-15）でMVP公開前の最優先実装として決定。現状はComing Soonプレースホルダーのみ。「どこまで進んだか分からない」がユーザーの学習離脱の主因となるため
+- ⬜ **プライバシーポリシーページ** ← Vercelデプロイ時点で法務要件として必須
 
 ### MVP 後に追加
 
@@ -461,7 +466,8 @@ interface UserProgressStore {
 ## 10. 検証計画
 
 ### 自動テスト
-- **ユニットテスト**: コマンドシミュレーター、データアクセス層（Jest/Vitest）
+- **ユニットテスト**: コマンドシミュレーター、データアクセス層（**Vitest**を優先採用）
+  - チームレビュー（2026-03-15）で「テストゼロ」を技術的リスクと評価。XP計算・レベルアップ条件を最初のテスト対象として決定
 - **E2Eテスト**: ガイド章送り、ターミナル操作、i18n切替（Playwright）
 
 ### ブラウザ確認
