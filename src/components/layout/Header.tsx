@@ -5,14 +5,24 @@ import styles from './Header.module.css';
 
 interface HeaderProps {
     level: number;
+    isSidebarOpen: boolean;
+    onToggleSidebar: () => void;
 }
 
-export default function Header({ level }: HeaderProps) {
+export default function Header({ level, isSidebarOpen, onToggleSidebar }: HeaderProps) {
     const { locale, os, t, toggleLocale, toggleOS } = useI18n();
 
     return (
         <header className={styles.header}>
             <div className={styles.logo}>
+                <button
+                    className={styles.hamburger}
+                    onClick={onToggleSidebar}
+                    aria-label={isSidebarOpen ? 'メニューを閉じる' : 'メニューを開く'}
+                    aria-expanded={isSidebarOpen}
+                >
+                    {isSidebarOpen ? '✕' : '☰'}
+                </button>
                 <span className={styles.logoIcon}>🐳</span>
                 <span className={styles.logoText}>{t.common.appName}</span>
                 <span className={styles.betaBadge}>β</span>

@@ -238,3 +238,15 @@
 .privacyLink:hover {
     color: var(--color-text-secondary);
 }
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        z-index: 200;
+    }
+
+    .sidebarOpen {
+        transform: translateX(0);
+    }
+}

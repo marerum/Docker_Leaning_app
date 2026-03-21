@@ -10,6 +10,8 @@ import styles from './Sidebar.module.css';
 
 interface SidebarProps {
     streak: number;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
 const LEVEL_LABELS = {
@@ -17,7 +19,7 @@ const LEVEL_LABELS = {
     en: ['Docker Basics', 'Dockerfile & Images', 'Docker Compose', 'Practice & Operations (WIP)', 'CI/CD & Team Dev (WIP)'],
 };
 
-export default function Sidebar({ streak }: SidebarProps) {
+export default function Sidebar({ streak, isOpen, onClose }: SidebarProps) {
     const { t, locale } = useI18n();
     const pathname = usePathname();
     const router = useRouter();
@@ -43,6 +45,12 @@ export default function Sidebar({ streak }: SidebarProps) {
     useEffect(() => {
         if (isPracticeActive) setExpanded(prev => ({ ...prev, practice: true }));
     }, [isPracticeActive]);
+
+    // ページ遷移時にモバイルSidebarを閉じる
+    useEffect(() => {
+        onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
 
     const toggleSection = (key: string) => {
         setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
@@ -71,7 +79,10 @@ export default function Sidebar({ streak }: SidebarProps) {
     }));
 
     return (
-        <aside className={styles.sidebar}>
+        <aside
+            className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
+            aria-hidden={!isOpen ? true : undefined}
+        >
             <Link href="/" className={styles.sidebarLogo}>
                 <span className={styles.sidebarLogoIcon}>🐳</span>
                 <span className={styles.sidebarLogoText}>{t.common.appName}</span>

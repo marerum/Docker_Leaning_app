@@ -18,6 +18,7 @@ export default function AppShell({ children }: AppShellProps) {
     const [badgeCount, setBadgeCount] = useState(0);
     const [streak, setStreak] = useState(0);
     const [mounted, setMounted] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -60,8 +61,23 @@ export default function AppShell({ children }: AppShellProps) {
     return (
         <I18nProvider>
             <div className={styles.appShell}>
-                <Sidebar streak={streak} />
-                <Header level={level} />
+                <Sidebar
+                    streak={streak}
+                    isOpen={isSidebarOpen}
+                    onClose={() => setIsSidebarOpen(false)}
+                />
+                {isSidebarOpen && (
+                    <div
+                        className={styles.overlay}
+                        onClick={() => setIsSidebarOpen(false)}
+                        aria-hidden="true"
+                    />
+                )}
+                <Header
+                    level={level}
+                    isSidebarOpen={isSidebarOpen}
+                    onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+                />
                 <main className={styles.mainArea}>
                     <div className={styles.content}>
                         {children}
